@@ -933,7 +933,7 @@ function saveCredential(name, pin) {
     }
   } catch (e) {}
   // Safari saglabāšanu piedāvā pēc "pārejas" uz citu lapu — imitējam to
-  try { history.pushState({ app: 1 }, '', location.pathname + '#app'); } catch (e) {}
+  try { history.pushState({ app: 1 }, '', location.pathname + location.search + '#app'); } catch (e) {}
 }
 /** Chrome/Android: automātiski paņem saglabāto lietotāju un PIN */
 async function autoCredential() {
@@ -975,8 +975,19 @@ function startApp() {
   placeTabs();
   fillLists(); resetHire(); resetVac();
   switchView(ls.get('personals_view_' + role) && tabs.some(t => t[0] === ls.get('personals_view_' + role)) ? ls.get('personals_view_' + role) : tabs[0][0]);
-  loadRecs();
+  loadRecs().then(openFromLink);
   setTimeout(() => maybeA2HS(), 2500);
+}
+/** Saite no e-pasta: ?id=P-0001 / A-0004 atver konkrēto pieteikumu */
+function openFromLink() {
+  const id = new URLSearchParams(location.search).get('id');
+  if (!id) return;
+  const t = /^A-/i.test(id) ? 'vac' : 'hire';
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  if (!S.recs[t].some(r => r['ID'] === id)) return toast('Pieteikums ' + id + ' nav atrasts', 'err');
+  S.listType = t; S.listStatus = '';
+  if (S.view !== 'list') { $$('#appViews > .view').forEach(x => x.classList.toggle('active', x.id === 'v-list')); $$('#tabs .tab').forEach(x => x.classList.toggle('active', x.dataset.tab === 'list')); S.view = 'list'; moveInd(); }
+  renderList(); openRec(t, id);
 }
 function switchView(v) {
   S.view = v; ls.set('personals_view_' + S.user.role, v);

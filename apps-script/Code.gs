@@ -212,7 +212,7 @@ function setup() {
     ['PILNI_DATI_EPASTA', 'NĒ', 'JĀ = e-pastā arī personas kods, adrese un IBAN. NĒ = tie redzami tikai tabulā'],
     ['ZINOT_VADITAJAM', 'JĀ', 'JĀ = darbu vadītājs saņem e-pastu, kad mainās pieteikuma statuss (adrese lapā Lietotāji)'],
     ['CALENDAR_ID', '', 'Google kalendāra ID apstiprinātajiem ierakstiem (tukšs = neizmantot)'],
-    ['WEB_APP_URL', '', 'Lietotnes saite e-pasta pogai "Atvērt sistēmu", piem. https://vaitkevix.github.io/personals/']
+    ['WEB_APP_URL', '', 'Lietotnes saite e-pasta pogai (tukšs = https://vaitkevix.github.io/personals/)']
   ];
   const have = set.getDataRange().getDisplayValues().map(r => String(r[0]).trim());
   want.filter(w => have.indexOf(w[0]) < 0).forEach(w => set.appendRow(w));
@@ -769,19 +769,19 @@ function yes_(key, def) {
 
 function webAppUrl_() {
   const own = setting_('WEB_APP_URL');
-  if (/^https:\/\/\S+$/.test(own)) return own;   // piem. https://vaitkevix.github.io/personals/
-  return ''; // automātiskā saite bieži ir nepareiza, tāpēc bez iestatījuma pogu nerāda
+  if (/^https:\/\/\S+$/.test(own)) return own;
+  return 'https://vaitkevix.github.io/personals/';   // SH | Personāls lietotne
 }
 
 /**
  * sections: [{ title: 'DARBINIEKS', rows: [['Vārds', 'Jānis'], ...] }]
  */
-function sendMail_(to, subject, heading, sub, sections, note, accent) {
+function sendMail_(to, subject, heading, sub, sections, note, accent, recId) {
   if (!to) return 'nav norādīts saņēmējs (lapa Iestatījumi → ADMIN_EMAIL, kolonna B)';
   const e = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const color = accent || '#1f3a5f';
-  const url = webAppUrl_();
-  const ssUrl = SpreadsheetApp.getActive().getUrl();
+  const base = webAppUrl_();
+  const url = recId ? base + (base.indexOf('?') < 0 ? '?' : '&') + 'id=' + encodeURIComponent(recId) : base;
 
   let html = '<div style="font-family:Arial,Helvetica,sans-serif;background:#f4f6f9;padding:24px 12px">' +
     '<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e3e7ee">' +
@@ -806,13 +806,12 @@ function sendMail_(to, subject, heading, sub, sections, note, accent) {
   });
 
   html += '<div style="margin-top:22px">' +
-    (url ? '<a href="' + url + '" style="display:inline-block;background:' + color + ';color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:bold;font-size:14px;margin:0 8px 8px 0">Atvērt sistēmu</a>' : '') +
-    '<a href="' + ssUrl + '" style="display:inline-block;background:#fff;color:' + color + ';border:1px solid #d0d5dd;text-decoration:none;padding:9px 16px;border-radius:8px;font-size:14px">Atvērt tabulu</a>' +
+    '<a href="' + url + '" style="display:inline-block;background:' + color + ';color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:bold;font-size:15px">' + (recId ? 'Atvērt pieteikumu' : 'Atvērt lietotni') + ' →</a>' +
     '</div></div></div>' +
     '<div style="text-align:center;font-size:11px;color:#98a2b3;margin-top:12px">Automātisks paziņojums — uz šo e-pastu nav jāatbild</div></div>';
 
   try {
-    MailApp.sendEmail({ to: to, subject: subject, body: text + (url ? '\nSistēma: ' + url : ''), htmlBody: html, name: 'Personāla pieteikumi' });
+    MailApp.sendEmail({ to: to, subject: subject, body: text + '\nAtvērt: ' + url, htmlBody: html, name: 'Personāla pieteikumi' });
     console.log('E-pasts nosūtīts uz ' + to + ': ' + subject);
     return '';
   } catch (err) {
@@ -842,7 +841,7 @@ function mailHire_(d) {
         ['Banka', d.banka], ['IBAN', full ? d.iban : '']] },
       { title: 'PIETEIKUMS', rows: [['Iesniedza', d.by], ['Piezīmes', d.piez]] }
     ],
-    full ? '' : 'Personas kods, adrese un IBAN redzami tabulā.');
+    full ? '' : 'Personas kods, adrese un IBAN redzami lietotnē.', '', d.id);
 }
 
 function mailVacation_(d) {
@@ -856,7 +855,7 @@ function mailVacation_(d) {
       { title: 'PIETEIKUMS', rows: [['Iesniedza', d.by], ['Piezīmes', d.piez]] }
     ],
     d.warnings.length ? '<b>Uzmanību:</b><br>' + d.warnings.map(w => String(w).replace(/</g, '&lt;')).join('<br>') : '',
-    '#0e5e6f');
+    '#0e5e6f', d.id);
 }
 
 function mailStatus_(to, type, id, name, status, comment) {
@@ -865,7 +864,7 @@ function mailStatus_(to, type, id, name, status, comment) {
     (type === 'hire' ? 'Pieņemšana' : 'Atvaļinājums') + ' — ' + name + ': ' + status,
     status, (type === 'hire' ? 'Pieņemšana darbā' : 'Atvaļinājums') + ' · ' + name + ' · ' + id,
     [{ title: 'STATUSS', rows: [['Pieteikums', id], ['Darbinieks', name], ['Jaunais statuss', status], ['Komentārs', comment]] }],
-    '', colors[status]);
+    '', colors[status], id);
 }
 
 /** Palaid šo, lai pārbaudītu, vai e-pasti pienāk. */
