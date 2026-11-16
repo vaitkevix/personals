@@ -369,6 +369,7 @@
   .lock h3{margin:0 0 4px;font-size:20px;font-weight:800}
   .lock p{margin:0 0 18px;color:var(--ink-2);font-size:14px}
   .lock .input{text-align:center;font-size:24px;letter-spacing:.3em;font-weight:800;margin-bottom:12px}
+  .lock .login-name{font-size:17px;letter-spacing:0;font-weight:700;margin-bottom:10px}
   .lock .input::placeholder{font-size:16px;letter-spacing:0;font-weight:600}
   .lock .err{min-height:20px;margin-top:10px;color:var(--red);font-weight:700;font-size:13.5px}
   .shake{animation:shake .4s}
@@ -674,7 +675,8 @@
     <form class="card lock" id="loginForm" autocomplete="off">
       <div class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
       <h3>Ienākt</h3>
-      <p>Ievadiet savu PIN kodu</p>
+      <p>Ievadiet lietotāju un PIN kodu</p>
+      <input class="input login-name" id="loginName" type="text" autocomplete="username" autocapitalize="words" placeholder="Lietotājs (vārds)" aria-label="Lietotājs">
       <input class="input" id="pinInput" type="password" autocomplete="current-password" placeholder="Ierakstiet PIN šeit" aria-label="PIN">
       <button class="btn btn-primary btn-block" type="submit" id="loginBtn">Ienākt</button>
       <div class="err" id="loginErr"></div>
@@ -807,7 +809,7 @@ const PAL = ['#1d5fa8','#c2410c','#7c3aed','#be185d','#0e7490','#a16207'];
 const HIRE_C = '#059669';
 const OBJ_SEP = '; ', AM_SEP = ' — ';
 
-const S = { pin:'', user:null, meta:null, recs:{ hire:[], vac:[] }, view:'', listType:'hire', listStatus:'', q:'',
+const S = { pin:'', login:'', user:null, meta:null, recs:{ hire:[], vac:[] }, view:'', listType:'hire', listStatus:'', q:'',
   cal:{ view:'month', d:new Date(), data:null, req:0 } };
 const H = {}, V = {};   // formu stāvoklis
 const $ = (id) => document.getElementById(id);
@@ -852,7 +854,7 @@ async function api(action, data = {}) {
   if (self.DEMO_API) return self.DEMO_API(action, Object.assign({ pin: S.pin }, data));
   if (!CFG.API_URL || CFG.API_URL.includes('IELIEC')) await freshConfig();
   if (!CFG.API_URL || CFG.API_URL.includes('IELIEC')) throw new Error('config.js nav ievadīts API_URL');
-  const r = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action, pin: S.pin }, data)) });
+  const r = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action, pin: S.pin, login: S.login }, data)) });
   const j = await r.json();
   if (!j.ok) throw new Error(j.error || 'Kļūda');
   return j;
@@ -888,23 +890,29 @@ $('themeBtn').onclick = () => {
 };
 
 /* ---------- Pieteikšanās ---------- */
-$('loginForm').onsubmit = (e) => { e.preventDefault(); tryLogin($('pinInput').value.trim()); };
-async function tryLogin(pin, silent) {
+$('loginForm').onsubmit = (e) => {
+  e.preventDefault();
+  const n = $('loginName').value.trim(), p = $('pinInput').value.trim();
+  if (!n) { $('loginErr').textContent = 'Ierakstiet lietotāja vārdu'; return $('loginName').focus(); }
+  if (!p) { $('loginErr').textContent = 'Ierakstiet PIN'; return $('pinInput').focus(); }
+  tryLogin(p, false, n);
+};
+async function tryLogin(pin, silent, login) {
   if (!pin) return;
-  S.pin = pin;
+  S.pin = pin; S.login = login || '';
   busy($('loginBtn'), true);
   try {
     const r = await api('login');
     S.user = r.user; S.meta = r.meta;
-    ls.set('personals_pin', pin);
+    ls.set('personals_pin', pin); ls.set('personals_login', S.login);
     startApp();
   } catch (err) {
     S.pin = '';
-    if (/PIN/.test(err.message)) ls.del('personals_pin');
+    if (/PIN/.test(err.message)) { ls.del('personals_pin'); if (!silent) err = new Error('Nepareizs lietotājs vai PIN'); }
     if (!silent) {
       $('loginErr').textContent = netMsg(err);
       $('loginForm').classList.remove('shake'); void $('loginForm').offsetWidth; $('loginForm').classList.add('shake');
-      $('pinInput').value = '';
+      $('pinInput').value = ''; $('pinInput').focus();
     }
   } finally { busy($('loginBtn'), false); }
 }
@@ -1549,7 +1557,9 @@ function maybeA2HS(force) {
 /* ---------- Starts ---------- */
 (function boot() {
   const pin = ls.get('personals_pin');
-  if (pin) { $('pinInput').value = ''; tryLogin(pin, true); }
+  const login = ls.get('personals_login') || '';
+  $('loginName').value = login;
+  if (pin) tryLogin(pin, true, login);
 })();
 </script>
 

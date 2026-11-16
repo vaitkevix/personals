@@ -17,7 +17,7 @@ Pēc katra jauna pieteikuma personāla vadītāja saņem e-pastu (lapa **Iestat�
 1. Atver savu personāla Google Sheets tabulu → **Paplašinājumi → Apps Script**.
 2. Failā **Code.gs** iezīmē visu un ielīmē `apps-script/Code.gs` saturu → saglabā.
 3. Palaid **setup → Run** (esošos datus tas neaiztiek, tikai pievieno trūkstošo).
-4. Lapā **Lietotāji** katram cilvēkam jābūt **savam, unikālam PIN** — lietotnē ienāk tikai ar PIN, bez vārda.
+4. Lapā **Lietotāji** katram cilvēkam jābūt **savs PIN** — lietotnē ienāk ar vārdu (kolonna Vārds) un PIN.
 5. **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**.
    - Execute as: **Me**, Who has access: **Anyone**
 6. Nokopē **Web app URL** (beidzas ar `/exec`).

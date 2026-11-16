@@ -117,7 +117,7 @@ function doPost(e) {
   try { req = JSON.parse(e.postData.contents); }
   catch (err) { return json_({ ok: false, error: 'Nederīgs pieprasījums' }); }
   try {
-    const user = pinUser_(req.pin);
+    const user = pinUser_(req.pin, req.login);
     if (!user) { Utilities.sleep(600); return json_({ ok: false, error: 'Nepareizs PIN' }); }
     const fn = API[req.action];
     if (!fn) return json_({ ok: false, error: 'Nezināma darbība' });
@@ -129,12 +129,15 @@ function doPost(e) {
 
 function json_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
 
-/** Lietotājs pēc PIN (lapa Lietotāji). PIN jābūt unikālam. */
-function pinUser_(pin) {
+/** Lietotājs pēc vārda + PIN (lapa Lietotāji). */
+function pinUser_(pin, login) {
   pin = String(pin || '').trim();
+  login = String(login || '').trim().toLowerCase();
   if (!pin) return null;
   const rows = sheet_(SH.USERS).getDataRange().getDisplayValues().slice(1);
-  const u = rows.find(r => r[0].trim() && r[1].trim() === pin && r[3].trim().toUpperCase() !== 'NĒ');
+  // Ja norādīts lietotājs — jāsakrīt vārdam un PIN; citādi pietiek ar PIN
+  const u = rows.find(r => r[0].trim() && r[1].trim() === pin && r[3].trim().toUpperCase() !== 'NĒ' &&
+    (!login || r[0].trim().toLowerCase() === login));
   return u ? { name: u[0].trim(), role: u[2].trim().toLowerCase() === 'admin' ? 'admin' : 'vaditajs' } : null;
 }
 
