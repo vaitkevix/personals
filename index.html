@@ -25,7 +25,7 @@
     if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', t); })();
 </script>
-<script src="config.js"></script>
+<script src="config.js?v=2"></script>
 <style>
   /* ===== Krāsas un virsmas — Aizvietošanas etalons ===== */
   :root{
@@ -838,8 +838,18 @@ const IC = {
 };
 
 /* ---------- API ---------- */
+/** Ja pārlūkā palikusi veca config.js kopija — ielādē svaigu */
+function freshConfig() {
+  return new Promise((res) => {
+    const sc = document.createElement('script');
+    sc.src = 'config.js?v=' + Date.now();
+    sc.onload = sc.onerror = () => { Object.assign(CFG, self.APP_CONFIG || {}); res(); };
+    document.head.appendChild(sc);
+  });
+}
 async function api(action, data = {}) {
   if (self.DEMO_API) return self.DEMO_API(action, Object.assign({ pin: S.pin }, data));
+  if (!CFG.API_URL || CFG.API_URL.includes('IELIEC')) await freshConfig();
   if (!CFG.API_URL || CFG.API_URL.includes('IELIEC')) throw new Error('config.js nav ievadīts API_URL');
   const r = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action, pin: S.pin }, data)) });
   const j = await r.json();
