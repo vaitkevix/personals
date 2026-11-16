@@ -369,6 +369,11 @@
   .lock h3{margin:0 0 4px;font-size:20px;font-weight:800}
   .lock p{margin:0 0 18px;color:var(--ink-2);font-size:14px}
   .lock .input{text-align:center;font-size:24px;letter-spacing:.3em;font-weight:800;margin-bottom:12px}
+  .pin-wrap{position:relative}
+  .pin-wrap .input{padding-right:52px}
+  .pin-eye{position:absolute;right:8px;top:8px;width:40px;height:40px;border:0;border-radius:10px;background:none;color:var(--ink-3);display:grid;place-items:center;cursor:pointer}
+  .pin-eye.on{color:var(--brand);background:var(--brand-soft)}
+  .chk.remember{justify-content:center;margin:2px 0 14px;font-size:13.5px}
   .lock .login-name{font-size:17px;letter-spacing:0;font-weight:700;margin-bottom:10px}
   .lock .input::placeholder{font-size:16px;letter-spacing:0;font-weight:600}
   .lock .err{min-height:20px;margin-top:10px;color:var(--red);font-weight:700;font-size:13.5px}
@@ -672,12 +677,14 @@
 <main>
   <!-- Pieteikšanās -->
   <section id="login" class="view active">
-    <form class="card lock" id="loginForm" autocomplete="off">
+    <form class="card lock" id="loginForm" method="post" action="#" autocomplete="on">
       <div class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
       <h3>Ienākt</h3>
       <p>Ievadiet lietotāju un PIN kodu</p>
-      <input class="input login-name" id="loginName" type="text" autocomplete="username" autocapitalize="words" placeholder="Lietotājs (vārds)" aria-label="Lietotājs">
-      <input class="input" id="pinInput" type="password" autocomplete="current-password" placeholder="Ierakstiet PIN šeit" aria-label="PIN">
+      <input class="input login-name" id="loginName" name="username" type="text" autocomplete="username" autocapitalize="words" autocorrect="off" spellcheck="false" placeholder="Lietotājs (vārds)" aria-label="Lietotājs">
+      <div class="pin-wrap"><input class="input" id="pinInput" name="password" type="password" autocomplete="current-password" autocorrect="off" spellcheck="false" placeholder="Ierakstiet PIN šeit" aria-label="PIN">
+        <button type="button" class="pin-eye" id="pinEye" aria-label="Rādīt PIN"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+      <label class="chk remember"><input type="checkbox" id="remember" checked> Atcerēties mani šajā ierīcē</label>
       <button class="btn btn-primary btn-block" type="submit" id="loginBtn">Ienākt</button>
       <div class="err" id="loginErr"></div>
     </form>
@@ -904,7 +911,9 @@ async function tryLogin(pin, silent, login) {
   try {
     const r = await api('login');
     S.user = r.user; S.meta = r.meta;
-    ls.set('personals_pin', pin); ls.set('personals_login', S.login);
+    ls.set('personals_login', S.login);
+    if (silent || $('remember').checked) ls.set('personals_pin', pin); else ls.del('personals_pin');
+    if (!silent) saveCredential(S.login, pin);
     startApp();
   } catch (err) {
     S.pin = '';
@@ -916,7 +925,32 @@ async function tryLogin(pin, silent, login) {
     }
   } finally { busy($('loginBtn'), false); }
 }
+/** Piedāvā pārlūkam / iPhone Keychain saglabāt lietotāju un PIN */
+function saveCredential(name, pin) {
+  try {
+    if (window.PasswordCredential && navigator.credentials) {
+      navigator.credentials.store(new PasswordCredential({ id: name, password: pin, name: name })).catch(() => {});
+    }
+  } catch (e) {}
+  // Safari saglabāšanu piedāvā pēc "pārejas" uz citu lapu — imitējam to
+  try { history.pushState({ app: 1 }, '', location.pathname + '#app'); } catch (e) {}
+}
+/** Chrome/Android: automātiski paņem saglabāto lietotāju un PIN */
+async function autoCredential() {
+  try {
+    if (!window.PasswordCredential || !navigator.credentials) return false;
+    const c = await navigator.credentials.get({ password: true, mediation: 'optional' });
+    if (c && c.password) { $('loginName').value = c.id; $('pinInput').value = c.password; tryLogin(c.password, false, c.id); return true; }
+  } catch (e) {}
+  return false;
+}
+$('pinEye').onclick = () => {
+  const i = $('pinInput'), show = i.type === 'password';
+  i.type = show ? 'text' : 'password'; $('pinEye').classList.toggle('on', show); i.focus();
+};
 function logout() {
+  try { navigator.credentials && navigator.credentials.preventSilentAccess && navigator.credentials.preventSilentAccess().catch(() => {}); } catch (e) {}
+  $('pinInput').type = 'password'; $('pinEye').classList.remove('on');
   ls.del('personals_pin'); S.pin = ''; S.user = null; closeSheet();
   $('appViews').hidden = true; $('tabs').hidden = true; $('app').classList.add('no-tabs');
   $('login').hidden = false; $('login').classList.add('active'); $('pinInput').value = ''; $('loginErr').textContent = '';
@@ -1560,6 +1594,7 @@ function maybeA2HS(force) {
   const login = ls.get('personals_login') || '';
   $('loginName').value = login;
   if (pin) tryLogin(pin, true, login);
+  else autoCredential();
 })();
 </script>
 
