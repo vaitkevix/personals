@@ -18,7 +18,7 @@
 <meta name="theme-color" content="#0f6b5c">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
   // Tēma pirms lapas zīmēšanas — bez mirgošanas
   (function () { var t; try { t = localStorage.getItem('personals_theme'); } catch (e) {}
@@ -644,6 +644,125 @@
   }
   .cnt-badge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--surface-2);font-size:11px;display:inline-grid;place-items:center;margin-left:2px}
   .seg .on .cnt-badge{background:var(--brand-soft);color:var(--brand)}
+  /* ================================================================
+     SH VIENOTAIS STILS — kopīgs visām SH lietotnēm (Aizvietošana, Izvešana,
+     Kaisāmmateriāls, Personāls, Budžets). Mierīgs pelēks fons, viens zaļais
+     akcents, krāsa tikai tur, kur tā kaut ko nozīmē. © VAITKEVIX, SIA
+     ================================================================ */
+  :root{
+    --bg:#f3f4f3; --bg-blob-1:transparent; --bg-blob-2:transparent; --bg-blob-3:transparent;
+    --ink:#161a19; --ink-2:#4a524f; --ink-3:#6b7471;
+    --line:rgba(22,26,25,.08); --line-2:rgba(22,26,25,.14);
+    --brand:#0f6b5c; --brand-2:#0f6b5c; --brand-dark:#0b5246; --brand-soft:rgba(15,107,92,.08);
+    --leaf-soft:rgba(180,83,9,.08); --amber-soft:rgba(180,83,9,.1); --green-soft:rgba(21,128,61,.09);
+    --blue-soft:rgba(29,95,168,.08); --red-soft:rgba(192,38,38,.08);
+    --surface:#ffffff; --surface-solid:#ffffff; --surface-2:#f0f2f1;
+    --g-fill:#ffffff; --g-bar:#ffffff; --g-pop:#ffffff;
+    --g-brd:rgba(22,26,25,.08); --g-brd-2:rgba(22,26,25,.08);
+    --g-sheen:none; --g-blur:none;
+    --g-shadow:0 1px 2px rgba(16,20,19,.05); --g-shadow-sm:0 1px 2px rgba(16,20,19,.06);
+    --g-well:none;
+    --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  :root[data-theme="dark"]{
+    --bg:#111413; --ink:#e8ecea; --ink-2:#a9b1ae; --ink-3:#7f8986;
+    --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14);
+    --brand:#1f8a76; --brand-2:#1f8a76; --brand-dark:#16695a; --brand-soft:rgba(63,178,154,.12);
+    --surface:#1a1e1d; --surface-solid:#202524; --surface-2:#161a19;
+    --g-fill:#1a1e1d; --g-bar:#1a1e1d; --g-pop:#1e2322;
+    --g-brd:rgba(255,255,255,.08); --g-brd-2:rgba(255,255,255,.08);
+    --g-shadow:none; --g-shadow-sm:none;
+  }
+  /* Bez plankumiem un stikla izpludinājuma */
+  body::before{display:none!important}
+  *,*::before,*::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  *{text-transform:none!important;letter-spacing:normal!important}
+  body{line-height:1.5}
+
+  /* Burti: biezums 400–600, hierarhija ar izmēru un toni */
+  b,strong,h1,h2,h3,h4{font-weight:600}
+  .brand-text h1{font-size:16px;font-weight:600}
+  .brand-text p,.view-head p,.lead,.hint{color:var(--ink-3);font-weight:400}
+  .view-head h2,.sheet h3{font-size:20px;font-weight:600}
+  .label{font-weight:500;color:var(--ink-2)}
+  .tab{font-weight:500}.tab.active{font-weight:600}
+  .seg button,.seg label,.sc,.chip,.chip-link,.pill,.more-btn,.link-btn,.section-t,.login-btn::after{font-weight:500!important}
+  .btn{font-weight:600;min-height:48px}
+  .crew-card h4,.bar-card h4,.task-top h3,.task-top .addr{font-weight:600}
+  .stat .k{font-size:12.5px;font-weight:500;color:var(--ink-3)}
+  .stat .v{font-weight:600;font-variant-numeric:tabular-nums}
+
+  /* Augšējā josla, logo, ikonu pogas */
+  .topbar::before{background:var(--g-bar)!important;border-bottom:1px solid var(--line)!important;box-shadow:none!important}
+  .logo{background:var(--brand)!important;box-shadow:none!important}
+  .icon-btn{background:var(--surface);border:1px solid var(--line);box-shadow:none;color:var(--ink-2)}
+  .icon-btn:active{transform:scale(.96)}
+
+  /* Statusa josla augšā: šaura un mierīga, nevis liela zaļa kartīte */
+  .hero{min-height:0!important;padding:12px 16px!important;margin-bottom:16px!important;border-radius:12px!important;
+    background:var(--surface)!important;color:var(--ink)!important;border:1px solid var(--line);box-shadow:none!important}
+  .hero::after,.hero-art,#heroGreeting{display:none!important}
+  .hero-text{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .hero .hello{font-size:15px!important;font-weight:600!important;opacity:1!important;color:var(--ink)}
+  .pending-line{background:none!important;border:0!important;padding:0!important;box-shadow:none!important;font-size:13px;font-weight:400;color:var(--ink-2)}
+  .pending-line i{background:#d97706}.pending-line.ok i{background:#16a34a}
+  .pending-line i::after{display:none!important}
+
+  /* Kartītes un paneļi */
+  .card{background:var(--surface)!important;border:1px solid var(--line)!important;box-shadow:var(--g-shadow)!important;border-radius:12px}
+  .panel{padding:20px}
+  .sheet{background:var(--g-pop)!important;border:1px solid var(--line-2)!important;box-shadow:0 12px 32px -12px rgba(16,20,19,.3)!important}
+
+  /* Pogas: viena galvenā zaļā, pārējās mierīgas */
+  .btn-primary{background:var(--brand)!important;box-shadow:none!important}
+  .btn-primary::after{display:none!important}
+  .btn-primary:active:not([disabled]){transform:scale(.99)}
+  .btn-glass{background:var(--surface)!important;border:1px solid var(--line-2)!important;box-shadow:none!important}
+  .chip-link{box-shadow:none!important;border:1px solid transparent}
+  .chip-link.map{background:var(--brand-soft);color:var(--brand)}
+  .chip-link.solid{background:var(--brand)!important}
+  .sc,.bag-pick button,.key{background:var(--surface);border:1px solid var(--line-2);box-shadow:none}
+  .sc.on{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:none}
+  .seg,.filter-seg,.lang-seg{background:var(--surface-2)!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:10px!important}
+  .seg .on,.seg button.on,.filter-seg .on,.lang-seg .on{background:var(--surface)!important;box-shadow:0 1px 2px rgba(16,20,19,.08),inset 0 0 0 1px var(--line)!important;border-radius:7px!important}
+  .tab .count{background:var(--brand)!important;box-shadow:none!important;font-weight:600}
+  .pill{font-size:12px}
+
+  /* Izvēles flīzes */
+  .ptile{background:var(--surface)!important;border:1px solid var(--line-2)!important;box-shadow:none!important;border-radius:12px!important}
+
+  /* Ievades lauki */
+  .input,.select,.textarea{background-color:var(--surface)!important;border:1px solid var(--line-2)!important;box-shadow:none!important;border-radius:10px}
+  .input:focus,.select:focus,.textarea:focus{border-color:var(--brand)!important;box-shadow:0 0 0 3px var(--brand-soft)!important}
+  .drop-empty{background:var(--surface-2);border:1px dashed var(--line-2)}
+  .drop-empty .ic{background:var(--brand-soft)!important;color:var(--brand)!important;box-shadow:none!important}
+
+  /* AI: bez violetā */
+  .ai-btn{background:var(--surface-2)!important;border:1px dashed var(--line-2)!important;color:var(--ink)}
+  .ai-spark{background:var(--brand-soft)!important;color:var(--brand)!important}
+  .ai-mini{color:var(--brand)!important}
+
+  /* Statistika: skaitļi bez krāsainām ikonām */
+  .stat .badge{display:none!important}
+  .empty .ic,.lock .ic{background:var(--brand-soft)!important;color:var(--brand)!important;box-shadow:none!important}
+
+  /* Paziņojumi */
+  .toast{background:#1f2423!important;border:0!important;box-shadow:0 12px 32px -12px rgba(0,0,0,.5)!important}
+  .toast.err{background:#9f1f1f!important}
+  .a2hs{border:1px solid var(--line-2)!important}
+
+  /* Cilnes: telefonā pie ekrāna apakšas, datorā mierīga josla */
+  .tabs{background:var(--surface)!important;border:1px solid var(--line-2)!important;box-shadow:0 8px 24px -12px rgba(16,20,19,.25)!important;border-radius:12px!important}
+  .tab-ind{background:var(--brand-soft)!important;box-shadow:none!important;border-radius:9px!important;transition:transform .25s var(--ease),width .25s var(--ease)!important}
+  .tab.active{color:var(--brand)}
+  @media (max-width:640px){
+    .tabs{left:0!important;right:0!important;bottom:0!important;max-width:none!important;border-radius:0!important;border:0!important;border-top:1px solid var(--line-2)!important;
+      padding:6px 8px calc(6px + var(--safe-b,0px))!important;box-shadow:none!important}
+    .tab-ind{top:6px!important;bottom:calc(6px + var(--safe-b,0px))!important;border-radius:10px!important}
+    main{padding-bottom:calc(88px + var(--safe-b,0px))!important}
+  }
+
+  :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 </style>
 </head>
 <body>
