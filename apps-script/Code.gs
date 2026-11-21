@@ -922,3 +922,16 @@ function masterLists_() {
 }
 /** Palaid vienreiz no redaktora, lai atļautu savienojumu ar portālu */
 function parbauditPortalu() { return centralUser_('0', 'test'); }
+
+/** Inventārs: lapas, izmēri, formulas ar atsaucēm uz citām lapām (pārcelšanai uz vienu tabulu). © VAITKEVIX, SIA */
+function lapuInventars() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const out = ss.getSheets().map(sh => {
+    const r = sh.getLastRow(), c = sh.getLastColumn();
+    let f = 0, x = 0, ext = 0;
+    if (r && c) sh.getRange(1, 1, Math.min(r, 3000), c).getFormulas().forEach(row => row.forEach(v => { if (v) { f++; if (/!/.test(v)) x++; if (/IMPORTRANGE/i.test(v)) ext++; } }));
+    return [sh.getName(), r, c, f, x, ext, sh.isSheetHidden() ? 'slēpta' : ''].join(' | ');
+  });
+  console.log(ss.getName() + ' (' + ss.getId() + ')\n' + out.join('\n'));
+  return out;
+}
