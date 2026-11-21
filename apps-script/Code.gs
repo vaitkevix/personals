@@ -134,6 +134,8 @@ function pinUser_(pin, login) {
   pin = String(pin || '').trim();
   login = String(login || '').trim().toLowerCase();
   if (!pin) return null;
+  const cu = centralUser_(pin, 'pers');
+  if (cu.known) return cu.role ? { name: cu.name, role: cu.role === 'admin' ? 'admin' : 'vaditajs' } : null;
   const rows = sheet_(SH.USERS).getDataRange().getDisplayValues().slice(1);
   // Ja norādīts lietotājs — jāsakrīt vārdam un PIN; citādi pietiek ar PIN
   const u = rows.find(r => r[0].trim() && r[1].trim() === pin && r[3].trim().toUpperCase() !== 'NĒ' &&
@@ -885,3 +887,23 @@ function testEmail() {
   if (err) throw new Error('Neizdevās nosūtīt: ' + err);
   Logger.log('✓ Nosūtīts uz: ' + to);
 }
+
+/* ===== Vienotais PIN no SH portāla (pilnvaras mainās portālā vaitkevix.cloud/sh). © VAITKEVIX, SIA ===== */
+const PORTAL_URL_ = 'https://aizvietosana-api.vaitkevix.workers.dev/portal';
+/** { known:false } — PIN portālā nav; { known:true, name, role } — role '' nozīmē: nav piekļuves */
+function centralUser_(pin, app) {
+  pin = String(pin || '').trim(); if (!pin) return { known: false };
+  const key = 'cu_' + app + '_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, 'sh|' + pin)).slice(0, 30);
+  const cache = CacheService.getScriptCache(), c = cache.get(key);
+  if (c) return JSON.parse(c);
+  try {
+    const r = UrlFetchApp.fetch(PORTAL_URL_, { method: 'post', contentType: 'text/plain', payload: JSON.stringify({ action: 'check', pin: pin, app: app }), muteHttpExceptions: true });
+    const j = JSON.parse(r.getContentText());
+    if (!j.ok) return { known: false };
+    const out = j.known ? { known: true, name: j.name, role: j.role || '' } : { known: false };
+    cache.put(key, JSON.stringify(out), 300);
+    return out;
+  } catch (e) { return { known: false }; }
+}
+/** Palaid vienreiz no redaktora, lai atļautu savienojumu ar portālu */
+function parbauditPortalu() { return centralUser_('0', 'test'); }
