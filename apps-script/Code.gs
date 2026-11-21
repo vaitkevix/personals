@@ -441,7 +441,10 @@ function getInit(token) {
   const user = auth_(token);
   const lv = sheet_(SH.LISTS).getDataRange().getDisplayValues();
   const lhead = lv[0].map(h => String(h).trim());
+  const ML = masterLists_();   // pamatdati no SH portāla (ja pieejami)
+  const MK = { 'SIA': 'sia', 'Banka': 'bankas', 'Atvaļinājuma veids': 'veidi', 'Amats': 'amati', 'Tālruņa kods': 'kodi', 'Objekts': 'objekti' };
   const colVals = name => {
+    if (ML && MK[name] && (ML[MK[name]] || []).length) return ML[MK[name]].slice();
     const i = typeof name === 'number' ? name : lhead.indexOf(name);
     return i < 0 ? [] : lv.slice(1).map(r => String(r[i] || '').trim()).filter(Boolean);
   };
@@ -904,6 +907,18 @@ function centralUser_(pin, app) {
     cache.put(key, JSON.stringify(out), 300);
     return out;
   } catch (e) { return { known: false }; }
+}
+/** Saraksti (SIA, bankas, amati, atvaļinājumu veidi, tālruņa kodi, objekti) no SH portāla; kešs 5 min */
+function masterLists_() {
+  const cache = CacheService.getScriptCache(), c = cache.get('master_lists');
+  if (c) return JSON.parse(c);
+  try {
+    const r = UrlFetchApp.fetch(PORTAL_URL_, { method: 'post', contentType: 'text/plain', payload: JSON.stringify({ action: 'lists' }), muteHttpExceptions: true });
+    const j = JSON.parse(r.getContentText()); if (!j.ok) return null;
+    const out = { sia: j.sia, bankas: j.bankas, veidi: j.veidi, amati: j.amati, kodi: j.kodi, objekti: j.objekti };
+    try { cache.put('master_lists', JSON.stringify(out), 300); } catch (e) {}
+    return out;
+  } catch (e) { return null; }
 }
 /** Palaid vienreiz no redaktora, lai atļautu savienojumu ar portālu */
 function parbauditPortalu() { return centralUser_('0', 'test'); }
