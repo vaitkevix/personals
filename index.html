@@ -799,8 +799,8 @@
     <form class="card lock" id="loginForm" method="post" action="#" autocomplete="on">
       <div class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
       <h3>Ienākt</h3>
-      <p>Ievadiet lietotāju un PIN kodu</p>
-      <input class="input login-name" id="loginName" name="username" type="text" autocomplete="username" autocapitalize="words" autocorrect="off" spellcheck="false" placeholder="Lietotājs (vārds)" aria-label="Lietotājs">
+      <p>Ievadiet savu PIN kodu</p>
+      <input class="input login-name" hidden id="loginName" name="username" type="text" autocomplete="username" autocapitalize="words" autocorrect="off" spellcheck="false" placeholder="Lietotājs (vārds)" aria-label="Lietotājs">
       <div class="pin-wrap"><input class="input" id="pinInput" name="password" type="password" autocomplete="current-password" autocorrect="off" spellcheck="false" placeholder="Ierakstiet PIN šeit" aria-label="PIN">
         <button type="button" class="pin-eye" id="pinEye" aria-label="Rādīt PIN"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
       <label class="chk remember"><input type="checkbox" id="remember" checked> Atcerēties mani šajā ierīcē</label>
@@ -1018,8 +1018,7 @@ $('themeBtn').onclick = () => {
 /* ---------- Pieteikšanās ---------- */
 $('loginForm').onsubmit = (e) => {
   e.preventDefault();
-  const n = $('loginName').value.trim(), p = $('pinInput').value.trim();
-  if (!n) { $('loginErr').textContent = 'Ierakstiet lietotāja vārdu'; return $('loginName').focus(); }
+  const n = '', p = $('pinInput').value.trim();
   if (!p) { $('loginErr').textContent = 'Ierakstiet PIN'; return $('pinInput').focus(); }
   tryLogin(p, false, n);
 };
@@ -1032,11 +1031,11 @@ async function tryLogin(pin, silent, login) {
     S.user = r.user; S.meta = r.meta;
     ls.set('personals_login', S.login);
     if (silent || $('remember').checked) ls.set('personals_pin', pin); else ls.del('personals_pin');
-    if (!silent) saveCredential(S.login, pin);
+    if (!silent) saveCredential(S.user && S.user.name || 'SH Personāls', pin);
     startApp();
   } catch (err) {
     S.pin = '';
-    if (/PIN/.test(err.message)) { ls.del('personals_pin'); if (!silent) err = new Error('Nepareizs lietotājs vai PIN'); }
+    if (/PIN/.test(err.message)) { ls.del('personals_pin'); if (!silent) err = new Error('Nepareizs PIN'); }
     if (!silent) {
       $('loginErr').textContent = netMsg(err);
       $('loginForm').classList.remove('shake'); void $('loginForm').offsetWidth; $('loginForm').classList.add('shake');
@@ -1059,7 +1058,7 @@ async function autoCredential() {
   try {
     if (!window.PasswordCredential || !navigator.credentials) return false;
     const c = await navigator.credentials.get({ password: true, mediation: 'optional' });
-    if (c && c.password) { $('loginName').value = c.id; $('pinInput').value = c.password; tryLogin(c.password, false, c.id); return true; }
+    if (c && c.password) { $('pinInput').value = c.password; tryLogin(c.password, false, ''); return true; }
   } catch (e) {}
   return false;
 }
@@ -1096,6 +1095,7 @@ function startApp() {
   switchView(ls.get('personals_view_' + role) && tabs.some(t => t[0] === ls.get('personals_view_' + role)) ? ls.get('personals_view_' + role) : tabs[0][0]);
   loadRecs().then(openFromLink);
   setTimeout(() => maybeA2HS(), 2500);
+  if (window.SHXR) SHXR.maybeTour();
 }
 /** Saite no e-pasta: ?id=P-0001 / A-0004 atver konkrēto pieteikumu */
 function openFromLink() {
@@ -1701,10 +1701,11 @@ $('helpBtn').onclick = () => {
   openSheet(`<h3>SH | Personāls</h3><p class="lead">${S.user ? esc(S.user.name) + ' · ' + (S.user.role === 'admin' ? 'admins' : 'darbu vadītājs') : 'Ienāciet ar savu PIN'}</p>
     <div class="help"><p><b>Pieņemt</b> — jauna darbinieka dati. Katram objektam atzīmē amatu un algu.</p><p><b>Atvaļinājums</b> — izvēlies darbinieku, un darbavieta aizpildīsies pati.</p>
     <p><b>Kalendārs</b> — kas un kad ir prom, kas sāk strādāt. Pārslēdz nedēļu, mēnesi vai gadu.</p><p>Pēc iesniegšanas personāla vadītāja saņem e-pastu.</p></div>
-    <div class="menu">${!standalone ? `<button type="button" id="mA2hs">${IC.share.replace('<svg', '<svg width="20" height="20"')}Pievienot sākuma ekrānam<span>›</span></button>` : ''}
+    <div class="menu">${S.user ? `<button type="button" id="mTour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5h.01"/></svg>Pamācība — soli pa solim<span>›</span></button>` : ''}${!standalone ? `<button type="button" id="mA2hs">${IC.share.replace('<svg', '<svg width="20" height="20"')}Pievienot sākuma ekrānam<span>›</span></button>` : ''}
       ${S.user ? `<button type="button" class="red" id="mOut">Iziet<span>›</span></button>` : ''}</div>`, true);
   if ($('mA2hs')) $('mA2hs').onclick = () => { closeSheet(); maybeA2HS(true); };
   if ($('mOut')) $('mOut').onclick = logout;
+  if ($('mTour')) $('mTour').onclick = () => { closeSheet(); setTimeout(() => SHXR.startTour(), 300); };
 };
 function hideA2HS() { const b = $('a2hs'); if (b) b.remove(); }
 function maybeA2HS(force) {
@@ -1721,12 +1722,31 @@ function maybeA2HS(force) {
 /* ---------- Starts ---------- */
 (function boot() {
   const pin = ls.get('personals_pin');
-  const login = ls.get('personals_login') || '';
-  $('loginName').value = login;
-  if (pin) tryLogin(pin, true, login);
+  if (pin) tryLogin(pin, true, '');
   else autoCredential();
 })();
 </script>
 
+<script>
+window.SHX = { app: 'pers', external: true,
+  getUser: function () { return S.user ? { name: S.user.name, kind: S.user.role === 'admin' ? 'admin' : 'vaditajs' } : null; },
+  homeTab: function (u) { return u.kind === 'admin' ? 'list' : 'hire'; },
+  switchTab: function (t) { switchView(t); },
+  tours: {
+    vaditajs: [
+      { title: 'Sveiki!', text: 'Īsa pamācība par SH | Personāls. Aizņems pusminūti.' },
+      { sel: '#tabs', title: 'Cilnes', text: 'Pieņemt, Atvaļinājums, Kalendārs un Mani pieteikumi.' },
+      { sel: '#hVards', tab: 'hire', title: 'Pieņemt darbinieku', text: 'Ierakstiet darbinieka datus. Katram objektam atzīmējiet amatu un algu.' },
+      { sel: '#vDarb', tab: 'vac', title: 'Atvaļinājums', text: 'Izvēlieties darbinieku — darbavieta aizpildīsies pati. Tad norādiet periodu.' },
+      { sel: '#calView', tab: 'cal', title: 'Kalendārs', text: 'Kas un kad ir prom, kas sāk strādāt. Pārslēdziet nedēļu, mēnesi vai gadu.' },
+      { sel: '[data-tab="list"]', tab: 'list', title: 'Mani pieteikumi', text: 'Visi jūsu iesniegtie pieteikumi un to statuss.' },
+      { sel: '#helpBtn', title: 'Izvēlne', text: 'Šeit ir pamācība, pievienošana sākuma ekrānam un iziešana.' },
+      { title: 'Viss gatavs!', text: 'Pēc iesniegšanas personāla vadītāja saņem e-pastu. Veiksmīgu darbu!' }
+    ]
+  }
+};
+SHX.tours.admin = [SHX.tours.vaditajs[0], { sel: '[data-tab="list"]', tab: 'list', title: 'Pieteikumi', text: 'Visi pieteikumi. Atveriet, lai apstiprinātu vai mainītu statusu.' }].concat(SHX.tours.vaditajs.slice(1, 5), SHX.tours.vaditajs.slice(-2));
+</script>
+<script src="sh-addon.js?v=1"></script>
 </body>
 </html>
