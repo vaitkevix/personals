@@ -10,6 +10,8 @@
 
   const css = `
   .shx-gate{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg,#f3f5f4)}
+  .shx-gate.shx-gate-in{position:static;inset:auto;z-index:auto;padding:8px 0 24px;background:none}
+  .shx-locked > :not(.shx-gate-in){display:none!important}
   .shx-card{width:min(380px,100%);background:var(--surface-solid,#fff);border:1px solid var(--line,rgba(0,0,0,.08));border-radius:16px;padding:26px 22px 20px;box-shadow:0 24px 60px -20px rgba(0,0,0,.35);text-align:center;animation:shxIn .35s ease-out}
   @keyframes shxIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
   .shx-card img{width:64px;height:64px;border-radius:14px;margin:0 auto 12px;display:block}
@@ -69,11 +71,12 @@
 
   /* ---------- Lietotājs ---------- */
   let U = null; try { U = JSON.parse(ls.get('user') || 'null'); } catch (e) {}
-  const SHX = window.SHXR = { user: () => U, startTour: () => startTour(), logout: () => logout(), showMenu: (c) => showMenu(c), maybeTour: () => maybeTour(), a2hs: () => C.a2hs && C.a2hs() };
+  const SHX = window.SHXR = { user: () => U, startTour: (k) => startTour(k), logout: () => logout(), showMenu: (c) => showMenu(c), maybeTour: () => maybeTour(), a2hs: () => C.a2hs && C.a2hs() };
 
   function gate() {
     if ($('shxGate')) return;
-    const g = document.createElement('div'); g.className = 'shx-gate'; g.id = 'shxGate';
+    const host = C.gateIn && document.querySelector(C.gateIn);
+    const g = document.createElement('div'); g.className = host ? 'shx-gate shx-gate-in' : 'shx-gate'; g.id = 'shxGate';
     g.innerHTML = `<form class="shx-card" id="shxCard" autocomplete="on">
       <img src="${esc(C.icon || 'icon.png')}" alt="">
       <h2>${esc(C.title)}</h2><p class="sub">${esc(C.sub || 'Ievadiet savu PIN kodu')}</p>
@@ -82,8 +85,8 @@
       <button type="submit" id="shxBtn">Ienākt</button>
       <p class="hint">${esc(C.hint || '')}</p>
       <p class="copy">© VAITKEVIX, SIA</p></form>`;
-    document.body.appendChild(g);
-    setTimeout(() => $('shxPin').focus(), 200);
+    if (host) { host.classList.add('shx-locked'); host.prepend(g); } else document.body.appendChild(g);
+    if (!host) setTimeout(() => $('shxPin').focus(), 200);
     $('shxCard').onsubmit = async (e) => {
       e.preventDefault();
       const pin = $('shxPin').value.trim(); if (!pin) return;
@@ -93,38 +96,45 @@
         if (!r.ok) throw new Error(r.error || 'Nepareizs PIN');
         U = r.user; if (r.carrierPin) U.carrierPin = r.carrierPin;
         if ($('shxRem').checked) ls.set('user', JSON.stringify(U)); else try { sessionStorage.setItem(K + 'user', JSON.stringify(U)); } catch (e) {}
-        g.remove(); apply(true);
+        if (C.gateIn && U.kind !== 'pieteicejs' && U.kind !== 'admin') { U = null; ls.del('user'); throw new Error('Šis PIN nav pieteicēja PIN'); }
       } catch (err) {
         b.disabled = false; b.textContent = 'Ienākt';
         const c = $('shxCard'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
         $('shxPin').value = ''; $('shxPin').focus();
         if (window.toast) toast(/fetch|network/i.test(err.message) ? 'Nav interneta' : err.message, 'err');
+        return;
       }
+      g.remove(); unlockHost(); apply(true);
     };
   }
   if (!U) { try { U = JSON.parse(sessionStorage.getItem(K + 'user') || 'null'); } catch (e) {} }
 
+  function unlockHost() { const h = C.gateIn && document.querySelector(C.gateIn); if (h) h.classList.remove('shx-locked'); }
   function apply(fresh) {
     ownMenu();
     if (!U) return gate();
+    unlockHost();
     try { C.onUser && C.onUser(U, fresh); } catch (e) { console.error(e); }
     if (C.tabsFor) { const allow = C.tabsFor(U); document.querySelectorAll(C.tabSel || '[data-tab]').forEach(t => { t.style.display = allow.indexOf(t.dataset.tab) === -1 ? 'none' : ''; }); }
+    if (C.gateIn && !fresh) return;
     if (fresh || !ls.get('tour_' + U.kind)) setTimeout(() => { if (!ls.get('tour_' + U.kind)) startTour(); }, 1200);
   }
   function logout() {
+    const was = U;
     ls.del('user'); try { sessionStorage.removeItem(K + 'user'); } catch (e) {}
-    try { C.onOut && C.onOut(U); } catch (e) {}
-    U = null; location.reload();
+    try { C.onOut && C.onOut(was); } catch (e) {}
+    U = null; if (C.gateIn) { apply(false); return; } location.reload();
   }
 
   /* ---------- Izvēlne (pie „?”) ---------- */
   function showMenu(container) {
-    if (!container || container.querySelector('.shx-menu')) return;
-    const box = document.createElement('div');
+    if (!container) return;
+    const old = container.querySelector('.shx-mbox'); if (old) old.remove();
+    const box = document.createElement('div'); box.className = 'shx-mbox';
     box.innerHTML = `${U ? `<div class="shx-who"><div>${esc(U.name)}<small>${esc(U.kindLabel || '')}</small></div></div>` : ''}
       <div class="shx-menu"><button type="button" data-x="tour">${IC.tour} Pamācība — soli pa solim</button>
       ${C.a2hs ? `<button type="button" data-x="a2hs">${IC.home} Pievienot sākuma ekrānam</button>` : ''}
-      ${U ? `<button type="button" class="red" data-x="out">${IC.out} Iziet</button>` : ''}</div>`;
+      ${U || (C.loggedIn && C.loggedIn()) ? `<button type="button" class="red" data-x="out">${IC.out} Iziet</button>` : ''}</div>`;
     container.prepend(box);
     box.addEventListener('click', (e) => {
       const x = e.target.closest('[data-x]'); if (!x) return;
@@ -173,12 +183,20 @@
   /* ---------- Pamācība soli pa solim ---------- */
   let TOUR = null;
   const cur = () => (C.getUser ? C.getUser() : U);
+  async function who(pin) {
+    const r = await fetch(C.api + '/who', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ pin, app: C.app }) }).then(r => r.json());
+    if (!r.ok) throw new Error(r.error || 'Nepareiza parole'); if (r.carrierPin) r.user.carrierPin = r.carrierPin; return r.user;
+  }
+  SHX.who = who;
+  SHX.tour = (kind) => startTour(kind);
+  SHX.maybeTourKind = (kind) => { if (!ls.get('tour_' + kind)) setTimeout(() => { if (!ls.get('tour_' + kind)) startTour(kind); }, 900); };
   function maybeTour() { const u = cur(); if (u && !ls.get('tour_' + u.kind)) setTimeout(() => { if (!ls.get('tour_' + u.kind)) startTour(); }, 1200); }
-  function startTour() {
-    const U = cur();
-    if (!U || !C.tours || !C.tours[U.kind]) return;
+  function startTour(kind) {
+    const u = cur();
+    kind = kind || (C.tourKind && C.tourKind(u)) || (u && u.kind);
+    if (!kind || !C.tours || !C.tours[kind]) return;
     endTour(true);
-    TOUR = { kind: U.kind, steps: C.tours[U.kind], i: 0 };
+    TOUR = { kind, steps: C.tours[kind], i: 0 };
     const ov = document.createElement('div'); ov.className = 'tour-ov'; ov.id = 'tourOv';
     ov.innerHTML = '<div class="tour-hole" id="tourHole"></div><div class="tour-tip" id="tourTip"></div>';
     document.body.appendChild(ov);
@@ -228,7 +246,7 @@
     const ov = $('tourOv'); if (ov) ov.remove();
     if (!TOUR) return;
     ls.set('tour_' + TOUR.kind, '1');
-    const back = C.homeTab && C.homeTab(cur()); TOUR = null;
+    const back = C.homeTab && C.homeTab(TOUR.kind); TOUR = null;
     if (!silent && back && C.switchTab) C.switchTab(back);
   }
   addEventListener('resize', () => { if (TOUR) go(TOUR.i); });
