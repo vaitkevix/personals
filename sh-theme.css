@@ -1,0 +1,88 @@
+/* SH | kopīgā tēma — visas lietotnes izskatās kā SH portāla kopskats.
+   Ielādē pēc lietotnes stiliem; html[data-sh] = aizv | izv | kais | pers | budz.  © VAITKEVIX, SIA */
+
+html[data-sh]{
+  --acc:#d6e8e1; --sh-bg:#f1f4f2; --sh-surf:#fff; --sh-surf-2:#f3f5f4; --sh-ink:#17201c; --sh-ink-2:#4a534f; --sh-ink-3:#6d7672;
+  --sh-dark:#17201c; --sh-on-dark:#fff; --sh-soft:0 1px 2px rgba(16,32,26,.05);
+  --bg:var(--sh-bg); --bg-blob-1:transparent; --bg-blob-2:transparent; --bg-blob-3:transparent;
+  --surface:var(--sh-surf); --surface-solid:var(--sh-surf); --surface-2:var(--sh-surf-2);
+  --ink:var(--sh-ink); --ink-2:var(--sh-ink-2); --ink-3:var(--sh-ink-3);
+  --g-fill:var(--sh-surf); --g-bar:rgba(255,255,255,.92); --g-pop:#fff; --g-brd:transparent; --g-brd-2:transparent;
+  --g-sheen:linear-gradient(transparent,transparent); --g-shadow:var(--sh-soft); --g-shadow-sm:var(--sh-soft); --g-well:none;
+  --g-blur:blur(16px); --shadow:var(--sh-soft); --radius:28px; --radius-sm:16px;
+}
+html[data-sh="izv"]{--acc:#f4e4b4}
+html[data-sh="kais"]{--acc:#d8e6f2}
+html[data-sh="pers"]{--acc:#f5dbe3}
+html[data-sh="budz"]{--acc:#e2ddf2}
+html[data-sh][data-theme="dark"]{
+  --acc:#1e3a32; --sh-bg:#0b120f; --sh-surf:#151d1a; --sh-surf-2:#1b2521; --sh-ink:#eef2ef; --sh-ink-2:#b4bdb8; --sh-ink-3:#8b958f;
+  --sh-dark:#eef2ef; --sh-on-dark:#0b120f; --sh-soft:0 1px 2px rgba(0,0,0,.35); --g-bar:rgba(21,29,26,.92); --g-pop:#1b2521;
+}
+html[data-sh="izv"][data-theme="dark"]{--acc:#3d3520}
+html[data-sh="kais"][data-theme="dark"]{--acc:#1e2f3d}
+html[data-sh="pers"][data-theme="dark"]{--acc:#3d2530}
+html[data-sh="budz"][data-theme="dark"]{--acc:#2c2840}
+
+/* Pamats */
+html[data-sh] body{font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif!important;background:var(--sh-bg)!important;background-image:none!important;color:var(--sh-ink)}
+html[data-sh] body::before,html[data-sh] body::after{background:none!important}
+html[data-sh] h1,html[data-sh] h2,html[data-sh] h3{letter-spacing:-.025em}
+
+/* Augšjosla */
+/* bez backdrop-filter: tas pārvērstu .topbar par ietvaru fiksētajām cilnēm */
+html[data-sh] .topbar{background:var(--sh-bg)!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html[data-sh] .brand-text h1{font-size:20px!important;font-weight:800!important;letter-spacing:-.03em!important;color:var(--sh-ink)!important}
+html[data-sh] .brand-text p{font-weight:700!important;color:var(--sh-ink-3)!important}
+html[data-sh] .logo{background:var(--acc)!important;color:#16201b!important;border:0!important;box-shadow:none!important;border-radius:14px!important;background-image:none!important}
+html[data-sh][data-theme="dark"] .logo{color:var(--sh-ink)!important}
+html[data-sh] .icon-btn{background:var(--sh-surf)!important;border:0!important;box-shadow:var(--sh-soft)!important;border-radius:50%!important;color:var(--sh-ink)!important}
+
+/* Cilnes: balta kapsula, aktīvā — tumša */
+html[data-sh] .tabs{background:var(--sh-surf)!important;border:0!important;box-shadow:0 1px 2px rgba(16,32,26,.05),0 10px 30px -14px rgba(16,32,26,.28)!important;border-radius:999px!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html[data-sh] .tab-ind{background:var(--sh-dark)!important;box-shadow:none!important;border-radius:999px!important}
+html[data-sh] .tab{color:var(--sh-ink-2)!important;font-weight:700!important}
+html[data-sh] .tab.active{color:var(--sh-on-dark)!important;font-weight:800!important}
+@media (max-width:640px){
+  html[data-sh] .tabs{left:10px!important;right:10px!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;max-width:560px!important;margin:0 auto!important;border-radius:28px!important;padding:6px!important}
+  html[data-sh] .tabs .tab-ind{top:6px!important;bottom:6px!important;border-radius:22px!important}
+}
+
+/* Kartītes */
+html[data-sh] .card{background:var(--sh-surf)!important;border:0!important;box-shadow:var(--sh-soft)!important;border-radius:28px!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html[data-sh] .card .glare,html[data-sh] .glare{display:none!important}
+html[data-sh] .skel{border-radius:28px!important}
+@media (max-width:520px){html[data-sh] .card,html[data-sh] .skel{border-radius:24px!important}}
+
+/* Sadaļu virsraksti un sveiciena josla */
+html[data-sh] .view-head h2{font-size:26px!important;font-weight:800!important;letter-spacing:-.035em!important;color:var(--sh-ink)!important}
+html[data-sh] .view-head p,html[data-sh] .lead,html[data-sh] .hint{color:var(--sh-ink-3)!important;font-weight:600!important}
+html[data-sh] .hero{background:var(--acc)!important;background-image:none!important;color:#16201b!important;border:0!important;box-shadow:none!important;border-radius:28px!important;padding:20px 22px!important}
+html[data-sh][data-theme="dark"] .hero{color:var(--sh-ink)!important}
+html[data-sh] .hero *{color:inherit}
+html[data-sh] .hero h2{font-size:26px!important;font-weight:800!important;letter-spacing:-.035em!important}
+html[data-sh] .hero .hello{font-weight:700!important;opacity:.7!important;color:inherit!important}
+html[data-sh] .hero::before,html[data-sh] .hero::after{display:none!important}
+
+/* Pogas */
+html[data-sh] .btn{border-radius:999px!important;font-weight:800!important;box-shadow:none!important}
+html[data-sh] .btn-primary,html[data-sh] .btn-p{background:var(--sh-dark)!important;background-image:none!important;color:var(--sh-on-dark)!important;border:0!important}
+html[data-sh] .btn-primary:hover,html[data-sh] .btn-p:hover{filter:brightness(1.15)}
+html[data-sh] .btn-ghost,html[data-sh] .btn-glass,html[data-sh] .btn-g{background:var(--sh-surf-2)!important;background-image:none!important;color:var(--sh-ink)!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html[data-sh] .chip-link,html[data-sh] .sc,html[data-sh] .more-btn{border-radius:999px!important}
+
+/* Lauki */
+html[data-sh] .input,html[data-sh] .select,html[data-sh] .textarea{background-color:var(--sh-surf-2)!important;border:1.5px solid transparent!important;box-shadow:none!important;border-radius:16px!important}
+html[data-sh] .input:focus,html[data-sh] .select:focus,html[data-sh] .textarea:focus{border-color:var(--sh-ink)!important;background-color:var(--sh-surf)!important}
+html[data-sh] .label{font-weight:800!important}
+
+/* Žetoni */
+html[data-sh] .badge,html[data-sh] .tag,html[data-sh] .chip{border-radius:999px!important}
+
+/* Uznirstošie logi */
+html[data-sh] .sheet,html[data-sh] .modal,html[data-sh] .menu{border-radius:28px!important;border:0!important;background:var(--sh-surf)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html[data-sh] .toast{border-radius:999px!important}
+
+/* Ieeja (PIN) */
+html[data-sh] .lock .ic,html[data-sh] .shx-gate .ic{background:var(--acc)!important;color:#16201b!important;border-radius:50%!important;box-shadow:none!important}
+html[data-sh] .lock h3{font-size:24px!important;font-weight:800!important}
