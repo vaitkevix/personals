@@ -69,7 +69,7 @@
 
   /* ---------- Lietotājs ---------- */
   let U = null; try { U = JSON.parse(ls.get('user') || 'null'); } catch (e) {}
-  const SHX = window.SHXR = { user: () => U, startTour: () => startTour(), logout: () => logout(), showMenu: (c) => showMenu(c), maybeTour: () => maybeTour() };
+  const SHX = window.SHXR = { user: () => U, startTour: () => startTour(), logout: () => logout(), showMenu: (c) => showMenu(c), maybeTour: () => maybeTour(), a2hs: () => C.a2hs && C.a2hs() };
 
   function gate() {
     if ($('shxGate')) return;
