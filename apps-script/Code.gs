@@ -98,15 +98,8 @@ function parseObj_(v, hire) {
 /* ======================= WEB APP ======================= */
 
 function doGet() {
-  // Vecā lietotne (fails Index) vēl strādā, ja tāds ir projektā; citādi — API statuss
-  try {
-    return HtmlService.createHtmlOutputFromFile('Index')
-      .setTitle('Personāla pieteikumi')
-      .addMetaTag('viewport', 'width=device-width, initial-scale=1')
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  } catch (e) {
-    return json_({ ok: true, app: 'SH | Personāls', time: new Date().toISOString() });
-  }
+  // Vecā saite slēgta: lietotne darbojas tikai portālā. HtmlService netiek lietots — tātad nav arī google.script.run.
+  return ContentService.createTextOutput('SH | Personāls — lietotne pārcelta: https://vaitkevix.cloud/sh/#pers · © VAITKEVIX, SIA');
 }
 
 /* ======================= JSON API (GitHub lietotnei) ======================= */
