@@ -1,7 +1,8 @@
 /* SH | kopīgā tēma — visas lietotnes izskatās kā SH portāla kopskats.
    Ielādē pēc lietotnes stiliem; html[data-sh] = aizv | izv | kais | pers | budz.  © VAITKEVIX, SIA */
 
-html[data-sh]{
+/* Lietotņu mainīgie → portāla palete. [data-theme] daļa vajadzīga, lai pārspētu lietotņu :root[data-theme="dark"] paletes */
+html[data-sh],html[data-sh][data-theme]{
   --acc:#d6e8e1; --sh-bg:#f1f4f2; --sh-surf:#fff; --sh-surf-2:#f3f5f4; --sh-ink:#17201c; --sh-ink-2:#4a534f; --sh-ink-3:#6d7672;
   --sh-dark:#17201c; --sh-on-dark:#fff; --sh-soft:0 1px 2px rgba(16,32,26,.05);
   --bg:var(--sh-bg); --bg-blob-1:transparent; --bg-blob-2:transparent; --bg-blob-3:transparent;
@@ -11,10 +12,10 @@ html[data-sh]{
   --g-sheen:linear-gradient(transparent,transparent); --g-shadow:var(--sh-soft); --g-shadow-sm:var(--sh-soft); --g-well:none;
   --g-blur:blur(16px); --shadow:var(--sh-soft); --radius:28px; --radius-sm:16px;
 }
-html[data-sh="izv"]{--acc:#f4e4b4}
-html[data-sh="kais"]{--acc:#d8e6f2}
-html[data-sh="pers"]{--acc:#f5dbe3}
-html[data-sh="budz"]{--acc:#e2ddf2}
+html[data-sh="izv"],html[data-sh="izv"][data-theme]{--acc:#f4e4b4}
+html[data-sh="kais"],html[data-sh="kais"][data-theme]{--acc:#d8e6f2}
+html[data-sh="pers"],html[data-sh="pers"][data-theme]{--acc:#f5dbe3}
+html[data-sh="budz"],html[data-sh="budz"][data-theme]{--acc:#e2ddf2}
 html[data-sh][data-theme="dark"]{
   --acc:#1e3a32; --sh-bg:#0b120f; --sh-surf:#151d1a; --sh-surf-2:#1b2521; --sh-ink:#eef2ef; --sh-ink-2:#b4bdb8; --sh-ink-3:#8b958f;
   --sh-dark:#eef2ef; --sh-on-dark:#0b120f; --sh-soft:0 1px 2px rgba(0,0,0,.35); --g-bar:rgba(21,29,26,.92); --g-pop:#1b2521;
@@ -58,7 +59,7 @@ html[data-sh] .skel{border-radius:28px!important}
 html[data-sh] .view-head h2{font-size:26px!important;font-weight:800!important;letter-spacing:-.035em!important;color:var(--sh-ink)!important}
 html[data-sh] .view-head p,html[data-sh] .lead,html[data-sh] .hint{color:var(--sh-ink-3)!important;font-weight:600!important}
 html[data-sh] .hero{background:var(--acc)!important;background-image:none!important;color:#16201b!important;border:0!important;box-shadow:none!important;border-radius:28px!important;padding:20px 22px!important}
-html[data-sh][data-theme="dark"] .hero{color:var(--sh-ink)!important}
+html[data-sh][data-theme="dark"] .hero{color:var(--sh-ink)!important;background:var(--acc)!important}
 html[data-sh] .hero *{color:inherit}
 html[data-sh] .hero h2{font-size:26px!important;font-weight:800!important;letter-spacing:-.035em!important}
 html[data-sh] .hero .hello{font-weight:700!important;opacity:.7!important;color:inherit!important}
@@ -81,8 +82,59 @@ html[data-sh] .badge,html[data-sh] .tag,html[data-sh] .chip{border-radius:999px!
 
 /* Uznirstošie logi */
 html[data-sh] .sheet,html[data-sh] .modal,html[data-sh] .menu{border-radius:28px!important;border:0!important;background:var(--sh-surf)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-html[data-sh] .toast{border-radius:999px!important}
+html[data-sh] .toast{border-radius:22px!important}
 
 /* Ieeja (PIN) */
 html[data-sh] .lock .ic,html[data-sh] .shx-gate .ic{background:var(--acc)!important;color:#16201b!important;border-radius:50%!important;box-shadow:none!important}
 html[data-sh] .lock h3{font-size:24px!important;font-weight:800!important}
+
+/* ===== v2: vecā dizaina paliekas (rāmji, raustītas līnijas, zaļās izvēles) → portāla stils ===== */
+/* Augšjosla: tāds pats fons kā lapai, bez līnijas */
+html[data-sh] .topbar::before{background:var(--sh-bg)!important;border:0!important;box-shadow:none!important}
+html[data-sh] .icon-btn{box-shadow:none!important}
+
+/* Segmenti (diena, filtri, režīmi): balta kapsula, aktīvais — tumšs */
+html[data-sh] .seg,html[data-sh] .filter-seg,html[data-sh] .lang-seg{background:var(--sh-surf)!important;border:0!important;box-shadow:none!important;border-radius:999px!important;padding:4px!important}
+html[data-sh] .card .seg,html[data-sh] .sheet .seg{background:var(--sh-surf-2)!important}
+html[data-sh] .seg button,html[data-sh] .seg label{border-radius:999px!important;font-weight:700!important;color:var(--sh-ink-2)}
+html[data-sh] .seg .on,html[data-sh] .seg button.on,html[data-sh] .filter-seg .on,html[data-sh] .lang-seg .on{background:var(--sh-dark)!important;color:var(--sh-on-dark)!important;box-shadow:none!important;border-radius:999px!important;font-weight:800!important}
+html[data-sh] .seg .on .cnt{background:color-mix(in srgb,var(--sh-on-dark) 20%,transparent)!important;color:inherit!important}
+
+/* Raustītās līnijas → mierīgi pelēki laukumi */
+html[data-sh] .more-btn,html[data-sh] .ai-btn,html[data-sh] .drop-empty,html[data-sh] .bulky-line,html[data-sh] .bc-free{border-color:transparent!important;background:var(--sh-surf-2)!important;box-shadow:none!important}
+html[data-sh] .more-btn{color:var(--sh-ink)!important;font-weight:800!important}
+html[data-sh] .ai-btn,html[data-sh] .drop-empty{border-radius:20px!important}
+html[data-sh] .drop-empty .ic,html[data-sh] .ai-spark{background:var(--acc)!important;color:#16201b!important}
+html[data-sh][data-theme="dark"] .drop-empty .ic,html[data-sh][data-theme="dark"] .ai-spark{color:var(--sh-ink)!important}
+html[data-sh] .btray{border-color:transparent!important;border-radius:20px!important;background:color-mix(in srgb,#e07a1f 10%,var(--sh-surf))!important}
+html[data-sh] .btray.over{border-color:#e07a1f!important;border-style:solid!important}
+html[data-sh] .bc{border-color:transparent!important}
+
+/* Izvēles flīzes un pogas: bez rāmja; izvēlētā — pasteļkrāsa ar tumšu kontūru */
+html[data-sh] button.kind,html[data-sh] .mat-pick button,html[data-sh] .bag-pick button,html[data-sh] .ptile,html[data-sh] .key{border-color:transparent!important;background:var(--sh-surf-2)!important;background-image:none!important;box-shadow:none!important;border-radius:20px!important}
+html[data-sh] .key{border-radius:50%!important;color:var(--sh-ink)!important}
+html[data-sh] button.kind.on,html[data-sh] .mat-pick button.on,html[data-sh] .bag-pick button.on,html[data-sh] .ptile.on{background:var(--acc)!important;color:var(--sh-ink)!important;box-shadow:inset 0 0 0 2px var(--sh-ink)!important}
+html[data-sh] .sc{border-color:transparent!important;background:var(--sh-surf-2)!important;background-image:none!important;box-shadow:none!important;font-weight:700!important}
+html[data-sh] .sc.on{background:var(--sh-dark)!important;color:var(--sh-on-dark)!important}
+html[data-sh] .switch-row{border-color:transparent!important;background:var(--sh-surf-2)!important;border-radius:20px!important}
+html[data-sh] .chip,html[data-sh] .note{border-color:transparent!important}
+html[data-sh] .note{border-radius:16px!important}
+
+/* Lauki: fokusā bez zaļā oreola */
+html[data-sh] .input:focus,html[data-sh] .select:focus,html[data-sh] .textarea:focus{box-shadow:none!important}
+html[data-sh][data-theme="dark"] .select option{background:var(--sh-surf-2)!important;color:var(--sh-ink)!important}
+
+/* Uznirstošie logi un paziņojumi kā portālā */
+html[data-sh] .sheet{box-shadow:0 20px 50px -20px rgba(16,32,26,.35)!important}
+html[data-sh] .toast{background:var(--sh-dark)!important;color:var(--sh-on-dark)!important;font-weight:700!important;border:0!important}
+html[data-sh] .toast.err{background:#9f1f1f!important;color:#fff!important}
+html[data-sh] .tab .count{background:var(--acc)!important;color:#16201b!important}
+html[data-sh] .tab.active .count{background:color-mix(in srgb,var(--sh-on-dark) 22%,transparent)!important;color:inherit!important}
+html[data-sh] :focus-visible{outline-color:var(--sh-ink)!important}
+html[data-sh] .jrow,html[data-sh] .date-btn,html[data-sh] .mine-btn{border-color:transparent!important;background:var(--sh-surf-2)!important;border-radius:20px!important}
+html[data-sh] .mine-btn{border-radius:999px!important}
+html[data-sh] .total{border-color:transparent!important;background:var(--acc)!important;border-radius:20px!important}
+html[data-sh] .done-block{border-top:0!important;background:none!important}
+html[data-sh] .jnum,html[data-sh] .jrow-h b i{background:var(--sh-dark)!important;background-image:none!important;color:var(--sh-on-dark)!important;box-shadow:none!important}
+html[data-sh][data-theme="dark"] .tab .count{color:var(--sh-ink)!important}
+html[data-sh][data-theme="dark"] .tab.active .count{color:inherit!important}

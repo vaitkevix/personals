@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SH | Personāls</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="icons/personals.svg">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/personals-32.png">
-<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/svg+xml" href="icons/personals.svg?v=3">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/personals-32.png?v=3">
+<link rel="apple-touch-icon" href="icon.png?v=3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SH | Personāls">
@@ -22,9 +22,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
   // Tēma pirms lapas zīmēšanas — bez mirgošanas
-  (function () { var t; try { t = localStorage.getItem('personals_theme'); } catch (e) {}
-    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', t); })();
+  // Tēma kopīga ar SH portālu (localStorage sh_theme); bez atslēgas — gaišā
+  (function () { var t; try { t = localStorage.getItem('sh_theme'); } catch (e) {}
+    document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light'); })();
 </script>
 <script src="config.js?v=3"></script>
 <style>
@@ -766,7 +766,8 @@
   :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 </style>
 
-<!--SH-THEME--><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap"><link rel="stylesheet" href="sh-theme.css?v=1"><script>document.documentElement.setAttribute("data-sh","pers")</script><!--/SH-THEME-->
+
+<!--SH-THEME--><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap"><link rel="stylesheet" href="sh-theme.css?v=2"><script>/*SH tēma: kopīga ar portālu (sh_theme), mainās uzreiz*/(function(d){d.setAttribute("data-sh","pers");function a(t){d.setAttribute("data-theme",t==="dark"?"dark":"light")}try{a(localStorage.getItem("sh_theme"))}catch(e){}addEventListener("storage",function(e){if(e.key==="sh_theme")a(e.newValue)});addEventListener("message",function(e){var m=e.data;if(e.origin===location.origin&&m&&m.sh==="theme")a(m.t)})})(document.documentElement)</script><!--/SH-THEME-->
 </head>
 <body>
 <div class="app no-tabs" id="app">
@@ -774,7 +775,7 @@
   <div class="topbar-inner">
     <div class="brand-row">
       <div class="logo">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7.5" r="3.3"/><path d="M2.8 20v-.8A5.4 5.4 0 0 1 8.2 13.8h1.6a5.4 5.4 0 0 1 4 1.8"/><path d="M18 13v7M14.5 16.5h7"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9.5" cy="8" r="4"/><path d="M2.5 21a7 7 0 0 1 14 0"/><path d="M19.5 8v6M16.5 11h6"/></svg>
       </div>
       <div class="brand-text">
         <h1>SH | Personāls</h1>
@@ -1015,7 +1016,7 @@ $('sheetBody').addEventListener('click', (e) => { if (e.target.closest('[data-cl
 /* ---------- Tēma ---------- */
 $('themeBtn').onclick = () => {
   const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', t); ls.set('personals_theme', t);
+  document.documentElement.setAttribute('data-theme', t); ls.set('sh_theme', t);
 };
 
 /* ---------- Pieteikšanās ---------- */
