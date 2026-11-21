@@ -1087,7 +1087,7 @@ const ROLE_TABS = {
 function startApp() {
   $('login').classList.remove('active'); $('login').hidden = true; $('appViews').hidden = false;
   const role = S.user.role === 'admin' ? 'admin' : 'vaditajs';
-  $('brandSub').textContent = S.user.name + (role === 'admin' ? ' · admins' : ' · darbu vadītājs');
+  $('brandSub').textContent = S.user.name + (role === 'admin' ? ' · Administrators' : ' · Darbu vadītājs');
   $('listH').textContent = role === 'admin' ? 'Pieteikumi' : 'Mani pieteikumi';
   const tabs = ROLE_TABS[role];
   $('tabs').innerHTML = '<span class="tab-ind" id="tabInd"></span>' + tabs.map(([id, l, ic]) =>
@@ -1702,7 +1702,7 @@ $('sheetBody').addEventListener('click', (e) => { const c = e.target.closest('.p
 
 /* ---------- Palīdzība, sākuma ekrāns ---------- */
 $('helpBtn').onclick = () => {
-  openSheet(`<h3>SH | Personāls</h3><p class="lead">${S.user ? esc(S.user.name) + ' · ' + (S.user.role === 'admin' ? 'admins' : 'darbu vadītājs') : 'Ienāciet ar savu PIN'}</p>
+  openSheet(`<h3>SH | Personāls</h3><p class="lead">${S.user ? esc(S.user.name) + ' · ' + (S.user.role === 'admin' ? 'Administrators' : 'Darbu vadītājs') : 'Ienāciet ar savu PIN'}</p>
     <div class="help"><p><b>Pieņemt</b> — jauna darbinieka dati. Katram objektam atzīmē amatu un algu.</p><p><b>Atvaļinājums</b> — izvēlies darbinieku, un darbavieta aizpildīsies pati.</p>
     <p><b>Kalendārs</b> — kas un kad ir prom, kas sāk strādāt. Pārslēdz nedēļu, mēnesi vai gadu.</p><p>Pēc iesniegšanas personāla vadītāja saņem e-pastu.</p></div>
     <div class="menu">${S.user ? `<button type="button" id="mTour"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5h.01"/></svg>Pamācība — soli pa solim<span>›</span></button>` : ''}${!standalone ? `<button type="button" id="mA2hs">${IC.share.replace('<svg', '<svg width="20" height="20"')}Pievienot sākuma ekrānam<span>›</span></button>` : ''}
