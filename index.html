@@ -1473,7 +1473,7 @@ function countDays(a, b) {
 
 /* ---------- PIEŅEMŠANA ---------- */
 function resetHire() {
-  Object.assign(H, { inval: 'NĒ', pens: 'NĒ', vesel: 'IR', sia: S.meta.lists.sia.length === 1 ? S.meta.lists.sia[0] : '', sakums: '', rows: [{ obj: '', amati: [], alga: '' }] });
+  Object.assign(H, { inval: 'NĒ', pens: 'NĒ', vesel: 'IR', sia: S.meta.lists.sia.length === 1 ? S.meta.lists.sia[0] : (S.meta.lists.sia.find(x => /^SH CLEANING$/i.test(x)) || ''), sakums: '', rows: [{ obj: '', amati: [], alga: '' }] });
   $('hireForm').reset(); drawRadios(H); drawSingle('hSia', S.meta.lists.sia, H, 'sia'); drawRows('h');
   drawDate($$('#hireForm [data-date=sakums]')[0], ''); $('pkHint').textContent = ''; $('ibanHint').textContent = '';
   $$('#hireForm .field.err').forEach(f => f.classList.remove('err'));
