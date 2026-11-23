@@ -1151,7 +1151,7 @@ const ROLE_TABS = {
 function startApp() {
   $('login').classList.remove('active'); $('login').hidden = true; $('appViews').hidden = false;
   const role = S.user.role === 'admin' ? 'admin' : 'vaditajs';
-  $('brandSub').textContent = S.user.name + (role === 'admin' ? ' · Administrators' : ' · Pieteicējs');
+  $('brandSub').textContent = S.user.name + ' · ' + (S.user.label || (role === 'admin' ? 'Administrators' : 'Pieteicējs'));
   $('listH').textContent = role === 'admin' ? 'Pieteikumi' : 'Mani pieteikumi';
   const tabs = ROLE_TABS[role];
   $('tabs').innerHTML = '<span class="tab-ind" id="tabInd"></span>' + tabs.map(([id, l, ic]) =>
