@@ -1729,7 +1729,7 @@ function renderPay() {
     .map(([c, k, v]) => `<div class="card stat"><div class="badge ${c}">${IC.pay}</div><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
   $('payList').innerHTML = rows.length ? rows.map(r => `<article class="card task t-pay" data-emp="${esc(r.darbinieks)}"><div class="task-top"><div><p class="addr">${esc(r.darbinieks)}</p>
       <div class="sub">${esc([r.sia, r.objekts].filter(Boolean).join(' · ') || '—')}${r.slodze ? ' · ' + esc(r.slodze) : ''}${r.beidz ? ' · beidz ' + esc(r.beidz) : ''}</div></div><b class="pay-sum">${eur(r.kopa)}</b></div>
-      <div class="chips"><span class="chip">Alga ${r.bezAlgas ? '—' : eur(r.alga)}</span>${r.piemaksas ? `<span class="chip vac">+ ${eur(r.piemaksas)} piemaksas</span>` : ''}${r.gaida ? `<span class="chip warnc">gaida ${eur(r.gaida)}</span>` : ''}</div></article>`).join('')
+      <div class="chips"><span class="chip">Alga ${r.bezAlgas ? '—' : eur(r.alga)}</span>${r.stundas != null ? `<span class="chip">⏱ ${String(r.stundas).replace('.', ',')} h · ${r.dienas} d.</span>` : ''}${r.piemaksas ? `<span class="chip vac">+ ${eur(r.piemaksas)} piemaksas</span>` : ''}${r.gaida ? `<span class="chip warnc">gaida ${eur(r.gaida)}</span>` : ''}</div></article>`).join('')
     : `<div class="empty"><div class="ic">${IC.empty}</div><b>Nav darbinieku</b>Šajā mēnesī nav apstiprinātu darbinieku vai piemaksu</div>`;
 }
 $('payList').onclick = (e) => {
@@ -1788,8 +1788,8 @@ $('payXls').onclick = async () => {
       widths.forEach((w, i) => ws.getColumn(i + 1).width = w);
       ws.addRow([]); ws.addRow(['© ' + new Date().getFullYear() + ' VAITKEVIX, SIA']);
     };
-    sheet('Algas', 'Algas · ' + ymTitle(d.menesis), ['Darbinieks', 'SIA', 'Objekts', 'Slodze', 'Pamatalga', 'Piemaksas', 'Kopā', 'Gaida apstipr.', 'Beidz'],
-      d.rows.map(r => [r.darbinieks, r.sia, r.objekts, r.slodze, r.bezAlgas ? null : r.alga, r.piemaksas, r.kopa, r.gaida || null, r.beidz]), [5, 6, 7, 8], [26, 18, 40, 18, 13, 13, 13, 14, 12]);
+    sheet('Algas', 'Algas · ' + ymTitle(d.menesis), ['Darbinieks', 'SIA', 'Objekts', 'Slodze', 'Nostrādāts (h)', 'Darba dienas', 'Pamatalga', 'Piemaksas', 'Kopā', 'Gaida apstipr.', 'Beidz'],
+      d.rows.map(r => [r.darbinieks, r.sia, r.objekts, r.slodze, r.stundas, r.dienas, r.bezAlgas ? null : r.alga, r.piemaksas, r.kopa, r.gaida || null, r.beidz]), [7, 8, 9, 10], [26, 18, 40, 18, 13, 12, 13, 13, 13, 14, 12]);
     sheet('Piemaksas', 'Piemaksas · ' + ymTitle(d.menesis), ['ID', 'Darbinieks', 'Iemesls', 'Summa', 'Objekts', 'Apraksts', 'Iesniedza', 'Statuss', 'Komentārs'],
       d.bonus.map(b => [b['ID'], b['Darbinieks'], b['Iemesls'], +String(b['Summa (EUR)']).replace(',', '.'), b['Objekts'], b['Piezīmes'], b['Iesniedza'], b['Statuss'], b['Admina komentārs']]), [4], [10, 24, 24, 12, 26, 40, 18, 13, 26]);
     const buf = await wb.xlsx.writeBuffer(), a = document.createElement('a');
