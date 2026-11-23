@@ -1834,7 +1834,8 @@ function chgWhen(r) { return r['Pēdējā darba diena'] && !r['Spēkā no'] ? 'P
 function renderList() {
   const t = S.listType, all = S.recs[t];
   $('typeSeg').innerHTML = [['hire', 'Pieņemšana'], ['vac', 'Atvaļinājumi'], ['chg', 'Grozījumi']].map(([k, l]) =>
-    `<button data-t="${k}" class="${k === t ? 'on' : ''}">${l}<span class="cnt-badge">${(S.recs[k] || []).length}</span></button>`).join('');
+    { const n = (S.recs[k] || []).filter(r => r['Statuss'] === 'Jauns' || r['Statuss'] === 'Apstrādē').length;   // tikai vēl neapstrādātie
+      return `<button data-t="${k}" class="${k === t ? 'on' : ''}">${l}${n ? `<span class="cnt-badge">${n}</span>` : ''}</button>`; }).join('');
   const F = [['', 'Visi'], ['Jauns', 'Jauni'], ['Apstrādē', 'Apstrādē'], ['Apstiprināts', 'Apstipr.'], ['Noraidīts', 'Noraid.']];
   $('statusSeg').innerHTML = F.map(([k, l]) => { const n = k ? all.filter(r => r['Statuss'] === k).length : all.length;
     return `<button data-s="${k}" class="${k === S.listStatus ? 'on' : ''}">${l}${n ? `<span class="cnt">${n}</span>` : ''}</button>`; }).join('');
