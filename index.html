@@ -850,13 +850,6 @@
           <div class="field"><span class="label">Pensionārs</span><div class="seg yn" data-radio="pens"></div></div>
           <div class="field"><span class="label">Obligātā veselības pārbaude</span><div class="seg yn" data-radio="vesel"></div></div>
         </div>
-        <div class="field" id="btField"><span class="label">Begin Time</span>
-          <div class="ptiles two" id="btTiles">
-            <button type="button" class="ptile" data-bt="Kodu kalkulators"><span class="pi amber"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M8 6.5h8v3H8zM8.5 13h.01M12 13h.01M15.5 13h.01M8.5 17h.01M12 17h.01M15.5 17h.01"/></svg></span><b>Kodu kalkulators</b><small>atzīmē ar kodu</small></button>
-            <button type="button" class="ptile" data-bt="Aplikācija viedtālrunī"><span class="pi blue"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 18h2"/></svg></span><b>Aplikācija</b><small>viedtālrunī</small></button>
-          </div>
-          <div class="hint bad" id="btHint" hidden>Izvēlieties, kā darbinieks atzīmēs darba laiku</div>
-        </div>
 
         <div class="form-sec">Darbs</div>
         <div class="field"><span class="label">SIA</span><div class="shortcuts" id="hSia" data-single="sia"></div></div>
@@ -1443,13 +1436,11 @@ function countDays(a, b) {
 
 /* ---------- PIEŅEMŠANA ---------- */
 function resetHire() {
-  Object.assign(H, { inval: 'NĒ', pens: 'NĒ', vesel: 'IR', bt: '', sia: S.meta.lists.sia.length === 1 ? S.meta.lists.sia[0] : '', sakums: '', rows: [{ obj: '', amati: [], alga: '' }] });
-  $('hireForm').reset(); drawRadios(H); drawBt(); drawSingle('hSia', S.meta.lists.sia, H, 'sia'); drawRows('h');
+  Object.assign(H, { inval: 'NĒ', pens: 'NĒ', vesel: 'IR', sia: S.meta.lists.sia.length === 1 ? S.meta.lists.sia[0] : '', sakums: '', rows: [{ obj: '', amati: [], alga: '' }] });
+  $('hireForm').reset(); drawRadios(H); drawSingle('hSia', S.meta.lists.sia, H, 'sia'); drawRows('h');
   drawDate($$('#hireForm [data-date=sakums]')[0], ''); $('pkHint').textContent = ''; $('ibanHint').textContent = '';
   $$('#hireForm .field.err').forEach(f => f.classList.remove('err'));
 }
-function drawBt() { $$('#btTiles .ptile').forEach(t => t.classList.toggle('on', t.dataset.bt === H.bt)); }
-$('btTiles').onclick = (e) => { const t = e.target.closest('[data-bt]'); if (!t) return; H.bt = t.dataset.bt; drawBt(); $('btHint').hidden = true; $('btField').classList.remove('err'); };
 
 function pkCheck(v) {
   const d = v.replace(/\D/g, ''); if (!d) return ['', ''];
@@ -1487,7 +1478,6 @@ function collectHire() {
   if (val('tel').replace(/\D/g, '').length < 6) fail(fm.elements.tel, 'Ierakstiet telefona numuru');
   if (!val('adrese')) fail(fm.elements.adrese, 'Ierakstiet deklarēto adresi');
   if (val('epasts') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('epasts'))) fail(fm.elements.epasts, 'Pārbaudiet e-pasta adresi');
-  if (!H.bt) { $('btHint').hidden = false; fail($('btField'), 'Izvēlieties Begin Time'); }
   if (!H.sia) fail($('hSia'), 'Izvēlieties SIA');
   H.rows.forEach((r, i) => {
     const bad = !clean(r.obj) ? 'Ierakstiet ' + (i + 1) + '. objekta adresi' : !r.amati.length ? 'Atzīmējiet amatu objektam ' + clean(r.obj) : !(parseFloat(String(r.alga).replace(',', '.')) > 0) ? 'Ievadiet algu objektam ' + clean(r.obj) : '';
@@ -1498,7 +1488,7 @@ function collectHire() {
   if (ibanCheck(val('iban'))[0] !== 'good') fail(fm.elements.iban, 'Pārbaudiet IBAN');
   const sum = H.rows.reduce((a, r) => a + (parseFloat(String(r.alga).replace(',', '.')) || 0), 0);
   return { vards: val('vards'), pk: val('pk'), adrese: val('adrese'), telKods: val('telKods'), tel: val('tel'), epasts: val('epasts'),
-    inval: H.inval, pens: H.pens, vesel: H.vesel, begintime: H.bt, sia: H.sia, objekts: rowsStr(H.rows, true), sakums: H.sakums,
+    inval: H.inval, pens: H.pens, vesel: H.vesel, sia: H.sia, objekts: rowsStr(H.rows, true), sakums: H.sakums,
     alga: Math.round(sum * 100) / 100, banka: val('banka'), iban: val('iban').replace(/\s/g, '').toUpperCase(), piezimes: val('piezimes') };
 }
 function hireText(f) {
@@ -1514,7 +1504,6 @@ E-pasts: ${f.epasts || '-'}
 Invaliditāte: ${f.inval}
 Pensionārs: ${f.pens}
 Obligātas veselības pārbaude: ${f.vesel}
-Begin Time: ${f.begintime}
 
 *DARBS*
 SIA: ${f.sia}
@@ -1729,7 +1718,9 @@ function openRec(t, id) {
     html += '<div class="kv-t">Atvaļinājums</div>' + kv([['Veids', r['Veids']], ['Periods', r['No'] + ' – ' + r['Līdz']], ['Ilgums', r['Kalendārās dienas'] + ' kalendārās d. · ' + r['Darba dienas'] + ' darba d.'], ['Aizvietotājs', r['Aizvietotājs']]]);
     html += '<div class="kv-t">Darbavieta</div>' + kv([['SIA', r['SIA']], ...objs.map(o => [o.name, o.amati.join(', ')])]);
   }
-  html += '<div class="kv-t">Pieteikums</div>' + kv([['Iesniedza', r['Iesniedza']], ['Iesniegts', r['Iesniegts']], ['Piezīmes', r['Piezīmes']], ['Komentārs', r['Admina komentārs']]]);
+  const dlT = (v) => !v ? (r['Statuss'] === 'Apstiprināts' ? 'gaida (pāries pats)' : 'pēc apstiprināšanas') : /^ok/.test(v) ? '✓ ' + v.replace(/^ok\s*/, 'pārnests ') : v === 'gaida beigas' ? 'pārnests · izslēgs pēc pēdējās darba dienas' : v;
+  html += '<div class="kv-t">Pieteikums</div>' + kv([['Iesniedza', r['Iesniedza']], ['Iesniegts', r['Iesniegts']], ['Piezīmes', r['Piezīmes']], ['Komentārs', r['Admina komentārs']],
+    ...(t !== 'vac' && 'Darba laiks' in r ? [['Darba laiks', dlT(r['Darba laiks'])]] : [])]);
   if (S.user.role === 'admin') {
     html += `<div class="kv-t">Mainīt statusu</div><div class="shortcuts" id="stPick">${STATUSES.map(s => `<button type="button" class="sc ${s === r['Statuss'] ? 'on' : ''}" data-st="${esc(s)}">${esc(s)}</button>`).join('')}</div>
       <div class="field"><textarea class="textarea" id="stCom" placeholder="Komentārs vadītājam (nav obligāts)">${esc(r['Admina komentārs'])}</textarea></div>
