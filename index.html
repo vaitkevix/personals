@@ -1888,13 +1888,20 @@ function openRec(t, id) {
   if (S.user.role === 'admin') {
     html += `<div class="kv-t">Mainīt statusu</div><div class="shortcuts" id="stPick">${STATUSES.map(s => `<button type="button" class="sc ${s === r['Statuss'] ? 'on' : ''}" data-st="${esc(s)}">${esc(s)}</button>`).join('')}</div>
       <div class="field"><textarea class="textarea" id="stCom" placeholder="Komentārs vadītājam (nav obligāts)">${esc(r['Admina komentārs'])}</textarea></div>
-      <div class="btn-row"><button type="button" class="btn btn-glass" data-close>Aizvērt</button><button type="button" class="btn btn-primary" id="stSave">Saglabāt</button></div>`;
+      <div class="btn-row"><button type="button" class="btn btn-glass" data-close>Aizvērt</button><button type="button" class="btn btn-primary" id="stSave">Saglabāt</button></div>
+      <button type="button" class="btn btn-glass btn-block" id="recDel" style="margin-top:10px;color:#b42318">Izdzēst pieteikumu</button>`;
   } else html += '<button type="button" class="btn btn-glass btn-block" data-close>Aizvērt</button>';
   openSheet(html);
   $('toEmp').onclick = () => { closeSheet(); setTimeout(() => openEmp(recName(t, r)), 250); };
   if (S.user.role !== 'admin') return;
   let pick = r['Statuss'];
   $('stPick').onclick = (e) => { const b = e.target.closest('[data-st]'); if (!b) return; pick = b.dataset.st; $$('#stPick .sc').forEach(x => x.classList.toggle('on', x === b)); };
+  $('recDel').onclick = async () => {
+    if (!confirm('Izdzēst šo pieteikumu (' + recName(t, r) + ')? Tas pazudīs no sarakstiem, kalendāra un algām.')) return;
+    const btn = $('recDel'); busy(btn, true);
+    try { await api('delete', { type: t, id }); closeSheet(); toast('Izdzēsts', 'ok'); await loadRecs(); if (S.view === 'cal') loadCal(); if (S.view === 'pay') loadPay(); }
+    catch (err) { toast(netMsg(err), 'err'); busy(btn, false); }
+  };
   $('stSave').onclick = async () => {
     const btn = $('stSave'); busy(btn, true);
     try { await api('status', { type: t, id, status: pick, comment: $('stCom').value.trim() }); closeSheet(); toast('Saglabāts: ' + pick, 'ok'); await loadRecs(); if (S.view === 'cal') loadCal(); if (S.view === 'pay') loadPay(); }
