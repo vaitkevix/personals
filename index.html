@@ -334,6 +334,9 @@
   .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
   @media (min-width:600px){.stats{grid-template-columns:repeat(4,1fr)}}
   .stat{padding:12px 14px 14px;overflow:hidden}
+  .sug{display:block;width:100%;margin-top:8px;padding:10px 12px;border:1px dashed var(--line-2);border-radius:12px;background:var(--surface-2);color:var(--ink-2);font:inherit;font-size:13.5px;text-align:left;cursor:pointer}.sug b{color:var(--ink)}
+  #tabs .tab .ts{display:none}@media (max-width:759px){#tabs .tab .tl{display:none}#tabs .tab .ts{display:inline}}
+  .pay-tools{display:flex;gap:8px;margin-bottom:12px}.pay-tools .input{flex:1}.pay-sum{font-size:18px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}.chip.warnc{background:#fdf3d8;color:#7a5400}
   .stat .badge{width:36px;height:36px;border-radius:13px;display:grid;place-items:center;color:#fff;margin-bottom:10px;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -1px 0 rgba(0,0,0,.15),0 8px 16px -8px rgba(0,0,0,.4)}
   .b-all{background:linear-gradient(145deg,#64748b,#334155)}
@@ -939,6 +942,20 @@
       </form>
     </section>
 
+    <!-- ALGAS UN PIEMAKSAS -->
+    <section id="v-pay" class="view">
+      <div class="view-head"><h2>Algas un piemaksas</h2><p id="payP">Piemaksas par labu darbu, papilddarbu, aizvietošanu u.c.</p></div>
+      <div class="cal-nav">
+        <button class="icon-btn" id="payPrev" aria-label="Iepriekšējais mēnesis"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg></button>
+        <h3 id="payTitle"></h3>
+        <button class="icon-btn" id="payNext" aria-label="Nākamais mēnesis"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></button>
+      </div>
+      <button type="button" class="btn btn-primary btn-block" id="payAdd" style="margin-bottom:14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Pievienot piemaksu</button>
+      <div class="stats" id="payStats" hidden></div>
+      <div class="pay-tools" id="payTools" hidden><input class="input" id="paySearch" placeholder="Meklēt darbinieku…" autocomplete="off"><button type="button" class="btn btn-glass" id="payXls">Excel</button></div>
+      <div class="list" id="payList"></div>
+    </section>
+
     <!-- KALENDĀRS -->
     <section id="v-cal" class="view">
       <div class="view-head"><h2>Kalendārs</h2><p>Atvaļinājumi un darba sākumi.</p></div>
@@ -980,7 +997,7 @@ const PAL = ['#1d5fa8','#c2410c','#7c3aed','#be185d','#0e7490','#a16207'];
 const HIRE_C = '#059669';
 const OBJ_SEP = '; ', AM_SEP = ' — ';
 
-const S = { pin:'', login:'', user:null, meta:null, recs:{ hire:[], vac:[], chg:[] }, view:'', listType:'hire', listStatus:'', q:'',
+const S = { pin:'', login:'', user:null, meta:null, recs:{ hire:[], vac:[], chg:[], bonus:[] }, pay:{ m:'', data:null, q:'' }, view:'', listType:'hire', listStatus:'', q:'',
   cal:{ view:'month', d:new Date(), data:null, req:0 } };
 const H = {}, V = {}, G = {};   // formu stāvoklis
 const CHG_TYPES = ['Amats / objekts / SIA', 'Alga / slodze', 'Personas dati', 'Darba attiecību beigas'];
@@ -1002,6 +1019,7 @@ const ls = { get: (k) => { try { return localStorage.getItem(k); } catch (e) { r
 const plural = (n, one, many) => n % 10 === 1 && n % 100 !== 11 ? one : many;
 
 const IC = {
+  pay: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 6.5A7 7 0 1 0 17.5 17.5"/><path d="M4 10.5h9M4 13.5h9"/></svg>',
   chg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg>',
   list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>',
   hire: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7.5" r="3.3"/><path d="M2.8 20v-.8A5.4 5.4 0 0 1 8.2 13.8h1.6a5.4 5.4 0 0 1 4 1.8"/><path d="M18 13v7M14.5 16.5h7"/></svg>',
@@ -1125,9 +1143,10 @@ function logout() {
 }
 
 /* ---------- Lietotne ---------- */
+const TAB_SHORT = { list: 'Visi', hire: 'Pieņemt', vac: 'Atvaļ.', chg: 'Grozīj.', pay: 'Algas', cal: 'Kalend.' };   // telefonā, ja ciļņu daudz
 const ROLE_TABS = {
-  admin: [['list', 'Pieteikumi', IC.list], ['hire', 'Pieņemt', IC.hire], ['vac', 'Atvaļinājums', IC.vac], ['chg', 'Grozījumi', IC.chg], ['cal', 'Kalendārs', IC.cal]],
-  vaditajs: [['hire', 'Pieņemt', IC.hire], ['vac', 'Atvaļinājums', IC.vac], ['chg', 'Grozījumi', IC.chg], ['cal', 'Kalendārs', IC.cal], ['list', 'Mani', IC.list]]
+  admin: [['list', 'Pieteikumi', IC.list], ['hire', 'Pieņemt', IC.hire], ['vac', 'Atvaļinājums', IC.vac], ['chg', 'Grozījumi', IC.chg], ['pay', 'Algas', IC.pay], ['cal', 'Kalendārs', IC.cal]],
+  vaditajs: [['hire', 'Pieņemt', IC.hire], ['vac', 'Atvaļinājums', IC.vac], ['chg', 'Grozījumi', IC.chg], ['pay', 'Piemaksas', IC.pay], ['cal', 'Kalendārs', IC.cal], ['list', 'Mani', IC.list]]
 };
 function startApp() {
   $('login').classList.remove('active'); $('login').hidden = true; $('appViews').hidden = false;
@@ -1136,7 +1155,7 @@ function startApp() {
   $('listH').textContent = role === 'admin' ? 'Pieteikumi' : 'Mani pieteikumi';
   const tabs = ROLE_TABS[role];
   $('tabs').innerHTML = '<span class="tab-ind" id="tabInd"></span>' + tabs.map(([id, l, ic]) =>
-    `<button class="tab" data-tab="${id}">${ic}<span>${l}</span><span class="count" id="cnt-${id}"></span></button>`).join('');
+    `<button class="tab" data-tab="${id}">${ic}<span class="tl">${l}</span><span class="ts">${TAB_SHORT[id] && tabs.length > 5 ? (id === 'list' && role !== 'admin' ? 'Mani' : TAB_SHORT[id]) : l}</span><span class="count" id="cnt-${id}"></span></button>`).join('');
   $('tabs').hidden = false; $('app').classList.remove('no-tabs');
   $('tabs').onclick = (e) => { const b = e.target.closest('.tab'); if (b) switchView(b.dataset.tab); };
   placeTabs();
@@ -1164,6 +1183,7 @@ function switchView(v) {
   moveInd();
   if (v === 'cal') loadCal();
   if (v === 'list') renderList();
+  if (v === 'pay') loadPay();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function moveInd() {
@@ -1260,8 +1280,20 @@ function rowHtml(p, r, i, n) {
       <input class="input combo-input" data-obj="${i}" value="${esc(r.obj)}" placeholder="Meklēt vai ierakstīt adresi"><button type="button" class="combo-clear" ${r.obj ? '' : 'hidden'} aria-label="Notīrīt">✕</button></div></div>
     <div class="field"><span class="label">Amats šajā objektā${p !== 'h' ? ' <span class="opt">· nav obligāts</span>' : ''}</span>
       <div class="shortcuts" style="margin:0">${opts.map(a => `<button type="button" class="sc ${r.amati.includes(a) ? 'on' : ''}" data-am="${esc(a)}">${esc(a)}</button>`).join('') || '<span class="hint">Pievienojiet amatus lapā Saraksti</span>'}</div></div>
-    ${p === 'h' ? `<div class="field"><label class="label">Alga šajā objektā, EUR</label><input class="input alga" type="number" min="0" step="0.01" inputmode="decimal" data-alga="${i}" value="${esc(r.alga)}" placeholder="0"></div>` : ''}
+    ${p === 'h' ? `<div class="field"><label class="label">Alga šajā objektā, EUR</label><input class="input alga" type="number" min="0" step="0.01" inputmode="decimal" data-alga="${i}" value="${esc(r.alga)}" placeholder="0">${sugHtml(r, i)}</div>` : ''}
   </div>`;
+}
+/* Esošā alga šajā objektā un amatā (no iepriekšējām pieņemšanām) — piedāvājums */
+function sugAlga(r) {
+  const a = (S.meta.algas || {})[String(r.obj || '').trim().toLowerCase()]; if (!a || !r.amati.length) return null;
+  const v = a[r.amati.join(', ')] != null ? a[r.amati.join(', ')] : r.amati.length === 1 ? a[r.amati[0]] : null;
+  return v > 0 ? v : null;
+}
+function sugHtml(r, i) {
+  const v = sugAlga(r); if (v == null) return '';
+  const cur = parseFloat(String(r.alga || '').replace(',', '.'));
+  return cur === v ? `<div class="hint good">Tāda pati kā līdz šim šajā objektā</div>`
+    : `<button type="button" class="sug" data-sug="${i}" data-v="${v}">Šajā objektā (${esc(r.amati.join(', '))}) līdz šim: <b>${eur(v)}</b> — ievietot</button>`;
 }
 function drawRows(p) {
   const st = p === 'h' ? H : p === 'g' ? G : V, box = $(p + 'Rows');
@@ -1280,6 +1312,8 @@ function drawTotal() {
   box.addEventListener('click', (e) => {
     const del = e.target.closest('[data-del]');
     if (del) { st().rows.splice(+del.dataset.del, 1); return drawRows(p); }
+    const sg = e.target.closest('[data-sug]');
+    if (sg) { st().rows[+sg.dataset.sug].alga = sg.dataset.v; return drawRows(p); }
     const am = e.target.closest('[data-am]');
     if (am) {
       const r = st().rows[+am.closest('.jrow').dataset.i], a = am.dataset.am;
@@ -1324,6 +1358,8 @@ function comboPick(inp, v) {
   comboHide();
   if (inp.id === 'vDarb') pickEmployee(v);
   if (inp.id === 'gDarb') pickChgEmployee(v);
+  if (inp.dataset.obj != null && inp.closest('#hRows')) drawRows('h');   // objekts izvēlēts → piedāvā esošo algu
+  if (inp.id === 'bDarb') inp.dispatchEvent(new Event('change'));
   inp.blur();
 }
 document.addEventListener('focusin', (e) => { if (e.target.classList.contains('combo-input')) comboShow(e.target); });
@@ -1661,14 +1697,117 @@ $('chgForm').addEventListener('submit', async (e) => {
   finally { busy(btn, false); }
 });
 
+/* ---------- ALGAS UN PIEMAKSAS ---------- */
+const BONUS_REASONS = ['Par labu darbu', 'Papilddarbs', 'Aizvietošana', 'Strādāja atvaļinājuma laikā', 'Virsstundas', 'Cits'];
+function payMonth() { if (!S.pay.m) { const d = new Date(); S.pay.m = ym(d.getFullYear(), d.getMonth()); } return S.pay.m; }
+function payShift(n) { const [y, m] = payMonth().split('-').map(Number), d = new Date(y, m - 1 + n, 1); S.pay.m = ym(d.getFullYear(), d.getMonth()); loadPay(); }
+$('payPrev').onclick = () => payShift(-1); $('payNext').onclick = () => payShift(1);
+$('paySearch').oninput = (e) => { S.pay.q = e.target.value.trim().toLowerCase(); renderPay(); };
+async function loadPay() {
+  const m = payMonth(); $('payTitle').textContent = ymTitle(m);
+  $('payP').textContent = S.user.role === 'admin' ? 'Pamatalga + apstiprinātās piemaksas. Atveriet darbinieku, lai apstiprinātu piemaksas.' : 'Jūsu pievienotās piemaksas šajā mēnesī.';
+  if (!S.pay.data || S.pay.data.menesis !== m) $('payList').innerHTML = '<div class="skel"></div><div class="skel"></div>';
+  try { S.pay.data = await api('pay', { menesis: m }); renderPay(); } catch (err) { toast(netMsg(err), 'err'); }
+}
+const stPill = (s) => `<span class="pill st-${esc(s)}">${esc(s)}</span>`;
+function bonusCard(b) {
+  return `<article class="card task t-bonus" data-bid="${esc(b['ID'])}"><div class="task-top"><div><p class="addr">${esc(b['Darbinieks'])}</p>
+    <div class="sub"><b>${eur(+String(b['Summa (EUR)']).replace(',', '.'))}</b> · ${esc(b['Iemesls'])} · ${esc(b['ID'])}${S.user.role === 'admin' ? ' · ' + esc(b['Iesniedza']) : ''}</div></div>${stPill(b['Statuss'])}</div>
+    ${b['Piezīmes'] ? `<div class="note">${esc(b['Piezīmes'])}</div>` : ''}${b['Admina komentārs'] ? `<div class="note"><b>Komentārs:</b> ${esc(b['Admina komentārs'])}</div>` : ''}</article>`;
+}
+function renderPay() {
+  const d = S.pay.data; if (!d) return;
+  const admin = S.user.role === 'admin', q = S.pay.q;
+  $('payStats').hidden = !admin; $('payTools').hidden = !admin;
+  if (!admin) {
+    $('payList').innerHTML = d.bonus.length ? d.bonus.slice().reverse().map(bonusCard).join('') : `<div class="empty"><div class="ic">${IC.empty}</div><b>Nav piemaksu</b>Pievienojiet piemaksu ar pogu augšā</div>`;
+    return;
+  }
+  const rows = d.rows.filter(r => !q || (r.darbinieks + ' ' + r.objekts + ' ' + r.sia).toLowerCase().includes(q));
+  const sum = (k) => d.rows.reduce((a, r) => a + (r[k] || 0), 0), pend = d.bonus.filter(b => b['Statuss'] === 'Jauns' || b['Statuss'] === 'Apstrādē').length;
+  $('payStats').innerHTML = [['b-all', 'Darbinieki', d.rows.length], ['b-done', 'Algas', eur(sum('alga'))], ['b-pend', 'Piemaksas', eur(sum('piemaksas'))], ['b-bad', 'Gaida apstipr.', pend]]
+    .map(([c, k, v]) => `<div class="card stat"><div class="badge ${c}">${IC.pay}</div><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  $('payList').innerHTML = rows.length ? rows.map(r => `<article class="card task t-pay" data-emp="${esc(r.darbinieks)}"><div class="task-top"><div><p class="addr">${esc(r.darbinieks)}</p>
+      <div class="sub">${esc([r.sia, r.objekts].filter(Boolean).join(' · ') || '—')}${r.slodze ? ' · ' + esc(r.slodze) : ''}${r.beidz ? ' · beidz ' + esc(r.beidz) : ''}</div></div><b class="pay-sum">${eur(r.kopa)}</b></div>
+      <div class="chips"><span class="chip">Alga ${r.bezAlgas ? '—' : eur(r.alga)}</span>${r.piemaksas ? `<span class="chip vac">+ ${eur(r.piemaksas)} piemaksas</span>` : ''}${r.gaida ? `<span class="chip warnc">gaida ${eur(r.gaida)}</span>` : ''}</div></article>`).join('')
+    : `<div class="empty"><div class="ic">${IC.empty}</div><b>Nav darbinieku</b>Šajā mēnesī nav apstiprinātu darbinieku vai piemaksu</div>`;
+}
+$('payList').onclick = (e) => {
+  const b = e.target.closest('[data-bid]'); if (b) return openRec('bonus', b.dataset.bid);
+  const r = e.target.closest('[data-emp]'); if (!r) return;
+  const name = r.dataset.emp, list = S.pay.data.bonus.filter(x => x['Darbinieks'] === name), row = S.pay.data.rows.find(x => x.darbinieks === name);
+  openSheet(`<h3>${esc(name)}</h3><p class="lead">${esc(ymTitle(S.pay.data.menesis))} · kopā ${eur(row.kopa)}</p>
+    <dl class="kv"><dt>Pamatalga</dt><dd>${row.bezAlgas ? 'nav pieņemšanas ieraksta' : eur(row.alga)}</dd><dt>Apstiprinātās piemaksas</dt><dd>${eur(row.piemaksas)}</dd>${row.gaida ? `<dt>Gaida apstiprinājumu</dt><dd>${eur(row.gaida)}</dd>` : ''}</dl>
+    <div class="kv-t">Piemaksas</div><div class="list" id="empBon">${list.length ? list.map(bonusCard).join('') : '<p class="hint">Šajā mēnesī nav piemaksu</p>'}</div>
+    <button type="button" class="btn btn-glass btn-block" data-close style="margin-top:12px">Aizvērt</button>`);
+  $('empBon').onclick = (ev) => { const c = ev.target.closest('[data-bid]'); if (c) { closeSheet(); setTimeout(() => openRec('bonus', c.dataset.bid), 250); } };
+};
+$('payAdd').onclick = () => {
+  const B = { iemesls: '' };
+  openSheet(`<h3>Piemaksa</h3><p class="lead">${esc(ymTitle(payMonth()))}</p>
+    <form id="bonForm" novalidate autocomplete="off">
+      <div class="field"><label class="label" for="bDarb">Darbinieks</label><div class="combo" data-combo="emp">${IC.user}<input class="input combo-input" id="bDarb" name="darbinieks" placeholder="Meklēt vai ierakstīt vārdu"><button type="button" class="combo-clear" hidden aria-label="Notīrīt">✕</button></div></div>
+      <div class="field"><span class="label">Par ko</span><div class="shortcuts" id="bIem">${BONUS_REASONS.map(v => `<button type="button" class="sc" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div></div>
+      <div class="field"><label class="label" for="bSum">Summa, EUR</label><input class="input" id="bSum" name="summa" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></div>
+      <div class="field"><label class="label" for="bObj">Objekts <span class="opt">· nav obligāts</span></label><input class="input" id="bObj" name="objekts" list="bObjL"><datalist id="bObjL">${S.meta.lists.objekti.map(o => `<option value="${esc(o)}">`).join('')}</datalist></div>
+      <div class="field"><label class="label" for="bPiez">Apraksts <span class="opt" id="bPiezO">· nav obligāts</span></label><textarea class="textarea" id="bPiez" name="piezimes" placeholder="Piem., aizvietoja Rudens 6 no 3. līdz 7. datumam"></textarea></div>
+      <div class="btn-row"><button type="button" class="btn btn-glass" data-close>Atcelt</button><button type="submit" class="btn btn-primary" id="bGo">Pievienot</button></div>
+    </form>`, true);
+  $('bIem').onclick = (e) => { const b = e.target.closest('[data-v]'); if (!b) return; B.iemesls = b.dataset.v; $$('#bIem .sc').forEach(x => x.classList.toggle('on', x === b));
+    $('bPiezO').textContent = /Cits|Papilddarbs/.test(B.iemesls) ? '· obligāts' : '· nav obligāts'; };
+  $('bDarb').addEventListener('change', () => { const e = S.meta.employees.find(x => x.name.toLowerCase() === $('bDarb').value.trim().toLowerCase()); if (e && !$('bObj').value) $('bObj').value = (splitObj(e.objekts).map(objPair)[0] || {}).name || ''; });
+  $('bonForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const f = { darbinieks: $('bDarb').value.trim(), menesis: payMonth(), iemesls: B.iemesls, summa: $('bSum').value.trim(), objekts: $('bObj').value.trim(), piezimes: $('bPiez').value.trim() };
+    if (!f.darbinieks) return toast('Izvēlieties darbinieku', 'err');
+    if (!f.iemesls) return toast('Izvēlieties, par ko piemaksa', 'err');
+    if (!(parseFloat(f.summa.replace(',', '.')) > 0)) return toast('Ievadiet summu', 'err');
+    if (/Cits|Papilddarbs/.test(f.iemesls) && !f.piezimes) return toast('Īsi aprakstiet, par ko piemaksa', 'err');
+    const btn = $('bGo'); busy(btn, true, 'Saglabā…');
+    try { const r = await api('bonus', { form: f }); closeSheet(); toast('Piemaksa pievienota · ' + r.id, 'ok'); loadPay(); loadRecs(); }
+    catch (err) { toast(netMsg(err), 'err'); busy(btn, false); }
+  };
+};
+/* Excel algu aprēķinam (administrators) */
+const loadExcel = () => window.ExcelJS ? Promise.resolve() : new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'; s.onload = res; s.onerror = () => rej(new Error('Neizdevās ielādēt Excel bibliotēku')); document.head.appendChild(s); });
+$('payXls').onclick = async () => {
+  const d = S.pay.data; if (!d || !d.rows) return;
+  const btn = $('payXls'); busy(btn, true, '…');
+  try {
+    await loadExcel();
+    const wb = new ExcelJS.Workbook(); wb.creator = 'SH | Personāls · © VAITKEVIX, SIA';
+    const INK = 'FF17201C', ACC = 'FFF5DBE3', LINE = 'FFDFE5E2', EUR = '#,##0.00 "€"';
+    const sheet = (name, title, head, rows, money, widths) => {
+      const ws = wb.addWorksheet(name, { views: [{ state: 'frozen', ySplit: 4, showGridLines: false }] });
+      ws.mergeCells(1, 1, 1, head.length); ws.getCell(1, 1).value = title; ws.getCell(1, 1).font = { size: 16, bold: true }; for (let i = 1; i <= head.length; i++) ws.getCell(1, i).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: ACC } }; ws.getRow(1).height = 32;
+      ws.getCell(2, 1).value = 'SELECTUM HOME · sagatavots ' + new Date().toLocaleDateString('lv-LV');
+      ws.getRow(4).values = head; ws.getRow(4).eachCell(c => { c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: INK } }; });
+      rows.forEach(r => { const x = ws.addRow(r); x.eachCell({ includeEmpty: true }, c => c.border = { bottom: { style: 'thin', color: { argb: LINE } } }); money.forEach(i => x.getCell(i).numFmt = EUR); });
+      if (rows.length) { const t = ws.addRow([]); t.getCell(1).value = 'Kopā'; money.forEach(i => { const col = String.fromCharCode(64 + i); t.getCell(i).value = { formula: 'SUM(' + col + '5:' + col + (4 + rows.length) + ')' }; t.getCell(i).numFmt = EUR; });
+        t.eachCell({ includeEmpty: true }, c => { c.font = { bold: true }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: ACC } }; }); ws.autoFilter = { from: 'A4', to: String.fromCharCode(64 + head.length) + '4' }; }
+      widths.forEach((w, i) => ws.getColumn(i + 1).width = w);
+      ws.addRow([]); ws.addRow(['© ' + new Date().getFullYear() + ' VAITKEVIX, SIA']);
+    };
+    sheet('Algas', 'Algas · ' + ymTitle(d.menesis), ['Darbinieks', 'SIA', 'Objekts', 'Slodze', 'Pamatalga', 'Piemaksas', 'Kopā', 'Gaida apstipr.', 'Beidz'],
+      d.rows.map(r => [r.darbinieks, r.sia, r.objekts, r.slodze, r.bezAlgas ? null : r.alga, r.piemaksas, r.kopa, r.gaida || null, r.beidz]), [5, 6, 7, 8], [26, 18, 40, 18, 13, 13, 13, 14, 12]);
+    sheet('Piemaksas', 'Piemaksas · ' + ymTitle(d.menesis), ['ID', 'Darbinieks', 'Iemesls', 'Summa', 'Objekts', 'Apraksts', 'Iesniedza', 'Statuss', 'Komentārs'],
+      d.bonus.map(b => [b['ID'], b['Darbinieks'], b['Iemesls'], +String(b['Summa (EUR)']).replace(',', '.'), b['Objekts'], b['Piezīmes'], b['Iesniedza'], b['Statuss'], b['Admina komentārs']]), [4], [10, 24, 24, 12, 26, 40, 18, 13, 26]);
+    const buf = await wb.xlsx.writeBuffer(), a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); a.download = 'Algas-' + d.menesis + '.xlsx';
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  } catch (err) { toast(err.message, 'err'); } finally { busy(btn, false); }
+};
+
 /* ---------- PIETEIKUMI ---------- */
 async function loadRecs() {
   if (!S.user) return;
   if (S.view === 'list' && !S.recs.hire.length && !S.recs.vac.length && !(S.recs.chg || []).length) $('recList').innerHTML = '<div class="skel"></div><div class="skel"></div>';
-  try { const r = await api('records'); S.recs = { hire: r.hire || [], vac: r.vac || [], chg: r.chg || [] }; drawHero(); if (S.view === 'list') renderList(); }
+  try { const r = await api('records'); S.recs = { hire: r.hire || [], vac: r.vac || [], chg: r.chg || [], bonus: r.bonus || [] }; drawHero(); if (S.view === 'list') renderList(); }
   catch (err) { toast(netMsg(err), 'err'); }
 }
 function recName(t, r) { return t === 'hire' ? r['Vārds, Uzvārds'] : r['Darbinieks']; }
+const ym = (y, m) => y + '-' + pad(m + 1);
+const ymTitle = (s) => { const [y, m] = s.split('-').map(Number); return MONTHS[m - 1] + ' ' + y; };
 function chgWhen(r) { return r['Pēdējā darba diena'] && !r['Spēkā no'] ? 'Pēdējā diena ' + r['Pēdējā darba diena'] : 'Spēkā no ' + r['Spēkā no'] + (r['Pēdējā darba diena'] ? ' · beidz ' + r['Pēdējā darba diena'] : ''); }
 function renderList() {
   const t = S.listType, all = S.recs[t];
@@ -1701,12 +1840,14 @@ function openRec(t, id) {
   const r = S.recs[t].find(x => x['ID'] === id); if (!r) return;
   const objs = splitObj(r['Objekts']).map(objPair);
   const kv = (rows) => '<dl class="kv">' + rows.filter(x => x[1] !== '' && x[1] != null).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('') + '</dl>';
-  let html = `<h3>${esc(recName(t, r))}</h3><p class="lead">${t === 'hire' ? 'Pieņemšana darbā' : t === 'chg' ? 'Grozījumi' : 'Atvaļinājums'} · ${esc(r['ID'])} · <span class="pill st-${esc(r['Statuss'])}" style="vertical-align:1px">${esc(r['Statuss'])}</span></p>`;
+  let html = `<h3>${esc(recName(t, r))}</h3><p class="lead">${t === 'hire' ? 'Pieņemšana darbā' : t === 'chg' ? 'Grozījumi' : t === 'bonus' ? 'Piemaksa' : 'Atvaļinājums'} · ${esc(r['ID'])} · <span class="pill st-${esc(r['Statuss'])}" style="vertical-align:1px">${esc(r['Statuss'])}</span></p>`;
   if (t === 'hire') {
     html += '<div class="kv-t">Darbinieks</div>' + kv([['Personas kods', r['Personas kods']], ['Deklarētā adrese', r['Deklarētā adrese']], ['Telefons', r['Telefons']], ['E-pasts', r['E-pasts']],
       ['Invaliditāte', r['Invaliditāte']], ['Pensionārs', r['Pensionārs']], ['Veselības pārbaude', r['Veselības pārbaude']], ['Begin Time', r['Begin Time']]]);
     html += '<div class="kv-t">Darbs</div>' + kv([['SIA', r['SIA']], ...objs.map(o => [o.name, o.amati.join(', ') + (o.alga != null ? ' · ' + eur(o.alga) : '')]), ['Sāk strādāt', r['Sāk strādāt']]]);
     html += '<div class="kv-t">Atalgojums</div>' + kv([['Alga kopā', r['Alga (EUR)'] ? eur(+String(r['Alga (EUR)']).replace(',', '.')) : ''], ['Banka', r['Banka']], ['IBAN', r['IBAN']]]);
+  } else if (t === 'bonus') {
+    html += '<div class="kv-t">Piemaksa</div>' + kv([['Mēnesis', ymTitle(r['Mēnesis'])], ['Iemesls', r['Iemesls']], ['Summa', eur(+String(r['Summa (EUR)']).replace(',', '.'))], ['Objekts', r['Objekts']]]);
   } else if (t === 'chg') {
     html += '<div class="kv-t">Grozījumi</div>' + kv([['Kas mainās', r['Kas mainās']], ['Spēkā no', r['Spēkā no']], ['Pašlaik', [r['SIA (bija)'], r['Objekts (bija)']].filter(Boolean).join(' · ')]]);
     if (r['Jaunā SIA'] || r['Jaunais objekts']) html += '<div class="kv-t">Amats / objekts / SIA</div>' + kv([['Jaunā SIA', r['Jaunā SIA']], ...objs.map(o => [o.name, o.amati.join(', ')])]);
@@ -1732,7 +1873,7 @@ function openRec(t, id) {
   $('stPick').onclick = (e) => { const b = e.target.closest('[data-st]'); if (!b) return; pick = b.dataset.st; $$('#stPick .sc').forEach(x => x.classList.toggle('on', x === b)); };
   $('stSave').onclick = async () => {
     const btn = $('stSave'); busy(btn, true);
-    try { await api('status', { type: t, id, status: pick, comment: $('stCom').value.trim() }); closeSheet(); toast('Saglabāts: ' + pick, 'ok'); await loadRecs(); if (S.view === 'cal') loadCal(); }
+    try { await api('status', { type: t, id, status: pick, comment: $('stCom').value.trim() }); closeSheet(); toast('Saglabāts: ' + pick, 'ok'); await loadRecs(); if (S.view === 'cal') loadCal(); if (S.view === 'pay') loadPay(); }
     catch (err) { toast(netMsg(err), 'err'); busy(btn, false); }
   };
 }
