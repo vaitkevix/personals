@@ -336,6 +336,7 @@
   .stat{padding:12px 14px 14px;overflow:hidden}
   .sug{display:block;width:100%;margin-top:8px;padding:10px 12px;border:1px dashed var(--line-2);border-radius:12px;background:var(--surface-2);color:var(--ink-2);font:inherit;font-size:13.5px;text-align:left;cursor:pointer}.sug b{color:var(--ink)}
   #tabs .tab .ts{display:none}@media (max-width:759px){#tabs .tab .tl{display:none}#tabs .tab .ts{display:inline}}
+  .tl{display:flex;flex-direction:column;gap:6px}.tl-i{display:grid;grid-template-columns:1fr auto;gap:2px 10px;text-align:left;padding:10px 12px;border-radius:14px;border:0;background:var(--surface-2);font:inherit;cursor:pointer}.tl-i b{font-size:13px}.tl-i span{grid-column:1;font-size:13.5px;font-weight:700}.tl-i small{grid-column:1;font-size:12px;color:var(--ink-3)}.tl-i .pill{grid-row:1/4;grid-column:2;align-self:center}
   .pay-tools{display:flex;gap:8px;margin-bottom:12px}.pay-tools .input{flex:1}.pay-sum{font-size:18px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}.chip.warnc{background:#fdf3d8;color:#7a5400}
   .stat .badge{width:36px;height:36px;border-radius:13px;display:grid;place-items:center;color:#fff;margin-bottom:10px;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -1px 0 rgba(0,0,0,.15),0 8px 16px -8px rgba(0,0,0,.4)}
@@ -1735,6 +1736,7 @@ function renderPay() {
 $('payList').onclick = (e) => {
   const b = e.target.closest('[data-bid]'); if (b) return openRec('bonus', b.dataset.bid);
   const r = e.target.closest('[data-emp]'); if (!r) return;
+  return openEmp(r.dataset.emp);
   const name = r.dataset.emp, list = S.pay.data.bonus.filter(x => x['Darbinieks'] === name), row = S.pay.data.rows.find(x => x.darbinieks === name);
   openSheet(`<h3>${esc(name)}</h3><p class="lead">${esc(ymTitle(S.pay.data.menesis))} · kopā ${eur(row.kopa)}</p>
     <dl class="kv"><dt>Pamatalga</dt><dd>${row.bezAlgas ? 'nav pieņemšanas ieraksta' : eur(row.alga)}</dd><dt>Apstiprinātās piemaksas</dt><dd>${eur(row.piemaksas)}</dd>${row.gaida ? `<dt>Gaida apstiprinājumu</dt><dd>${eur(row.gaida)}</dd>` : ''}</dl>
@@ -1768,6 +1770,26 @@ $('payAdd').onclick = () => {
     catch (err) { toast(netMsg(err), 'err'); busy(btn, false); }
   };
 };
+/* Darbinieka profils */
+async function openEmp(name) {
+  openSheet(`<h3>${esc(name)}</h3><div class="skel"></div>`);
+  let d; try { d = await api('employee', { vards: name }); } catch (err) { closeSheet(); return toast(netMsg(err), 'err'); }
+  const c = d.cur, kv = (rows) => '<dl class="kv">' + rows.filter(x => x[1] !== '' && x[1] != null).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('') + '</dl>';
+  const TL = { hire: 'Pieņemšana', chg: 'Grozījumi', vac: 'Atvaļinājums', bonus: 'Piemaksa' };
+  const ME = ymTitle(new Date().getFullYear() + '-' + pad(new Date().getMonth() + 1));
+  openSheet(`<h3>${esc(d.vards)}</h3><p class="lead">${esc([c.sia, c.amats].filter(Boolean).join(' · ') || 'Darbinieks')}${c.beidz ? ' · <b>beidz ' + esc(c.beidz) + '</b>' : ''}</p>
+    <div class="stats" style="margin:4px 0 12px"><div class="card stat"><div class="k">Alga</div><div class="v">${c.alga ? eur(c.alga) : '—'}</div></div>
+      <div class="card stat"><div class="k">${esc(ME)}</div><div class="v">${d.dl ? String(d.dl.sis.h).replace('.', ',') + ' h' : '—'}</div></div>
+      <div class="card stat"><div class="k">Atvaļ. šogad</div><div class="v">${d.vacDays} d.</div></div><div class="card stat"><div class="k">Piemaksas</div><div class="v">${eur(d.piemaksas)}</div></div></div>
+    <div class="kv-t">Darbs</div>${kv([['SIA', c.sia], ['Objekti', c.objekts], ['Slodze', c.slodze], ['Strādā no', c.sakums], ['Pēdējā darba diena', c.beidz]])}
+    <div class="kv-t">Darba laiks (SMS)</div>${d.dl ? kv([['Tālrunis', d.dl.phone], ['Objekts', d.dl.objekts || '— nav piesaistīts'], ['Amats', d.dl.amats], ['Statuss', d.dl.aktivs ? 'aktīvs' : 'izslēgts'],
+      ['Šomēnes', String(d.dl.sis.h).replace('.', ',') + ' h · ' + d.dl.sis.d + ' d.'], ['Iepriekšējā mēnesī', String(d.dl.iepr.h).replace('.', ',') + ' h · ' + d.dl.iepr.d + ' d.']]) : '<p class="hint">Nav Darba laikā — pāries pats pēc pieņemšanas apstiprināšanas</p>'}
+    <div class="kv-t">Kontakti un dati</div>${kv([['Telefons', c.tel], ['E-pasts', c.epasts], ['Deklarētā adrese', c.adrese], ['Personas kods', c.pk], ['Banka', c.banka], ['IBAN', c.iban], ['Invaliditāte', c.inval], ['Pensionārs', c.pens]])}
+    <div class="kv-t">Vēsture</div><div class="tl">${d.vesture.map(v => `<button type="button" class="tl-i" data-t="${v.t}" data-id="${esc(v.id)}"><b>${esc(TL[v.t])}</b><span>${esc(v.txt)}</span><small>${esc(v.d)} · ${esc(v.id)}</small>${stPill(v.st)}</button>`).join('') || '<p class="hint">Nav ierakstu</p>'}</div>
+    <button type="button" class="btn btn-glass btn-block" data-close style="margin-top:12px">Aizvērt</button>`);
+  document.querySelector('.tl').onclick = (e) => { const b = e.target.closest('[data-id]'); if (!b) return; const t = b.dataset.t, id = b.dataset.id;
+    if (!(S.recs[t] || []).some(x => x['ID'] === id)) return toast('Ieraksts nav pieejams', 'err'); closeSheet(); setTimeout(() => openRec(t, id), 250); };
+}
 /* Excel algu aprēķinam (administrators) */
 const loadExcel = () => window.ExcelJS ? Promise.resolve() : new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'; s.onload = res; s.onerror = () => rej(new Error('Neizdevās ielādēt Excel bibliotēku')); document.head.appendChild(s); });
 $('payXls').onclick = async () => {
@@ -1862,12 +1884,14 @@ function openRec(t, id) {
   const dlT = (v) => !v ? (r['Statuss'] === 'Apstiprināts' ? 'gaida (pāries pats)' : 'pēc apstiprināšanas') : /^ok/.test(v) ? '✓ ' + v.replace(/^ok\s*/, 'pārnests ') : v === 'gaida beigas' ? 'pārnests · izslēgs pēc pēdējās darba dienas' : v;
   html += '<div class="kv-t">Pieteikums</div>' + kv([['Iesniedza', r['Iesniedza']], ['Iesniegts', r['Iesniegts']], ['Piezīmes', r['Piezīmes']], ['Komentārs', r['Admina komentārs']],
     ...(t !== 'vac' && 'Darba laiks' in r ? [['Darba laiks', dlT(r['Darba laiks'])]] : [])]);
+  html += `<button type="button" class="btn btn-glass btn-block" id="toEmp" style="margin:8px 0 4px">Darbinieka profils</button>`;
   if (S.user.role === 'admin') {
     html += `<div class="kv-t">Mainīt statusu</div><div class="shortcuts" id="stPick">${STATUSES.map(s => `<button type="button" class="sc ${s === r['Statuss'] ? 'on' : ''}" data-st="${esc(s)}">${esc(s)}</button>`).join('')}</div>
       <div class="field"><textarea class="textarea" id="stCom" placeholder="Komentārs vadītājam (nav obligāts)">${esc(r['Admina komentārs'])}</textarea></div>
       <div class="btn-row"><button type="button" class="btn btn-glass" data-close>Aizvērt</button><button type="button" class="btn btn-primary" id="stSave">Saglabāt</button></div>`;
   } else html += '<button type="button" class="btn btn-glass btn-block" data-close>Aizvērt</button>';
   openSheet(html);
+  $('toEmp').onclick = () => { closeSheet(); setTimeout(() => openEmp(recName(t, r)), 250); };
   if (S.user.role !== 'admin') return;
   let pick = r['Statuss'];
   $('stPick').onclick = (e) => { const b = e.target.closest('[data-st]'); if (!b) return; pick = b.dataset.st; $$('#stPick .sc').forEach(x => x.classList.toggle('on', x === b)); };
