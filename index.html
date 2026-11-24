@@ -1154,7 +1154,7 @@ function startApp() {
   const role = S.user.role === 'admin' ? 'admin' : 'vaditajs';
   $('brandSub').textContent = S.user.name + ' · ' + (S.user.label || (role === 'admin' ? 'Administrators' : 'Pieteicējs'));
   $('listH').textContent = role === 'admin' ? 'Pieteikumi' : 'Mani pieteikumi';
-  const tabs = ROLE_TABS[role];
+  const tabs = ROLE_TABS[role].filter(t => !(S.user.viewer && t[0] === 'pay'));   // skatītājam algu nav
   $('tabs').innerHTML = '<span class="tab-ind" id="tabInd"></span>' + tabs.map(([id, l, ic]) =>
     `<button class="tab" data-tab="${id}">${ic}<span class="tl">${l}</span><span class="ts">${TAB_SHORT[id] && tabs.length > 5 ? (id === 'list' && role !== 'admin' ? 'Mani' : TAB_SHORT[id]) : l}</span><span class="count" id="cnt-${id}"></span></button>`).join('');
   $('tabs').hidden = false; $('app').classList.remove('no-tabs');
