@@ -1048,8 +1048,8 @@ async function api(action, data = {}) {
   if (self.DEMO_API) return self.DEMO_API(action, Object.assign({ pin: S.pin }, data));
   if (!CFG.API_URL || CFG.API_URL.includes('IELIEC')) await freshConfig();
   if (!CFG.API_URL || CFG.API_URL.includes('IELIEC')) throw new Error('config.js nav ievadīts API_URL');
-  const r = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action, pin: S.pin, login: S.login }, data)) });
-  const j = await r.json();
+  const r = await fetch(CFG.API_URL, { signal: self.AbortSignal && AbortSignal.timeout ? AbortSignal.timeout(90000) : undefined, method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action, pin: S.pin, login: S.login }, data)) }).catch(() => { throw new Error('Nav savienojuma ar serveri — mēģiniet vēlreiz'); });
+  const j = await r.json().catch(() => ({ ok: false, error: 'Serveris neatbild — mēģiniet vēlreiz' }));
   if (!j.ok) throw new Error(j.error || 'Kļūda');
   return j;
 }
