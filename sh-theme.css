@@ -138,3 +138,7 @@ html[data-sh] .done-block{border-top:0!important;background:none!important}
 html[data-sh] .jnum,html[data-sh] .jrow-h b i{background:var(--sh-dark)!important;background-image:none!important;color:var(--sh-on-dark)!important;box-shadow:none!important}
 html[data-sh][data-theme="dark"] .tab .count{color:var(--sh-ink)!important}
 html[data-sh][data-theme="dark"] .tab.active .count{color:inherit!important}
+
+/* platas pogas un aizvietošanas piekļuves rinda — nevis aplis (bija ovāls) */
+html[data-sh] .icon-btn.login-btn{border-radius:999px!important}
+html[data-sh=aizv] .key{border-radius:14px!important}
