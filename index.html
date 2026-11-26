@@ -889,6 +889,7 @@
           <div class="field"><span class="label">Līdz (ieskaitot)</span><button type="button" class="date-btn empty" data-date="lidz" data-label="Atvaļinājums līdz"></button></div>
         </div>
         <div class="vacinfo" id="vDays" hidden></div>
+        <label class="switch-row" style="margin-top:16px" for="vStrada"><input type="checkbox" id="vStrada" name="strada" style="width:22px;height:22px;flex:none;margin:0;accent-color:var(--brand)"><span><b>Strādās atvaļinājuma laikā</b><small>Atzīmējiet, ja darbinieks atvaļinājuma laikā turpinās strādāt</small></span></label>
         <div class="field" style="margin-top:16px"><label class="label" for="vAizv">Aizvietotājs <span class="opt">· nav obligāts</span></label><div class="combo" data-combo="emp2">
           <svg class="combo-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           <input class="input combo-input" id="vAizv" name="aizvietotajs" placeholder="Kas strādās šajā laikā"><button type="button" class="combo-clear" hidden aria-label="Notīrīt">✕</button></div></div>
@@ -1607,7 +1608,7 @@ function collectVac() {
   if (!V.no) fail($$('#vacForm [data-date=no]')[0], 'Izvēlieties, no kura datuma');
   if (!V.lidz) fail($$('#vacForm [data-date=lidz]')[0], 'Izvēlieties, līdz kuram datumam');
   return { darbinieks: val('darbinieks'), sia: V.sia, objekts: rowsStr(V.rows, false), veids: V.veids, no: V.no, lidz: V.lidz,
-    aizvietotajs: val('aizvietotajs'), piezimes: val('piezimes') };
+    aizvietotajs: val('aizvietotajs'), piezimes: val('piezimes'), strada: fm.elements.strada.checked };
 }
 $('vacForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -1850,7 +1851,7 @@ function renderList() {
     return `<article class="card task t-${t}" data-id="${esc(r['ID'])}" style="animation-delay:${Math.min(i, 8) * 35}ms">
       <div class="task-top"><div><p class="addr">${esc(recName(t, r))}</p><div class="sub"><b>${esc(when)}</b> · ${esc(r['ID'])}${S.user.role === 'admin' ? ' · ' + esc(r['Iesniedza']) : ''}</div></div>
         <span class="pill st-${esc(r['Statuss'])}">${esc(r['Statuss'])}</span></div>
-      <div class="chips">${r['SIA'] ? `<span class="chip">${esc(r['SIA'])}</span>` : ''}${t === 'vac' && r['Veids'] ? `<span class="chip vac">${esc(r['Veids'])}</span>` : ''}${t === 'chg' ? String(r['Kas mainās'] || '').split(', ').filter(Boolean).map(v => `<span class="chip vac">${esc(v)}</span>`).join('') : ''}
+      <div class="chips">${r['SIA'] ? `<span class="chip">${esc(r['SIA'])}</span>` : ''}${t === 'vac' && r['Veids'] ? `<span class="chip vac">${esc(r['Veids'])}</span>` : ''}${t === 'vac' && r['Strādās atvaļinājuma laikā'] ? '<span class="chip vac">Strādās atv. laikā</span>' : ''}${t === 'chg' ? String(r['Kas mainās'] || '').split(', ').filter(Boolean).map(v => `<span class="chip vac">${esc(v)}</span>`).join('') : ''}
         ${objs.map(o => `<span class="chip">${IC.addr} ${esc(o.name)}${o.amati.length ? ' · ' + esc(o.amati.join(', ')) : ''}</span>`).join('')}</div>
       ${r['Admina komentārs'] ? `<div class="note"><b>Komentārs:</b> ${esc(r['Admina komentārs'])}</div>` : ''}
     </article>`;
@@ -1881,7 +1882,7 @@ function openRec(t, id) {
     if (pd.some(x => x[1])) html += '<div class="kv-t">Personas dati</div>' + kv(pd);
     if (r['Pēdējā darba diena']) html += '<div class="kv-t">Darba attiecību beigas</div>' + kv([['Pēdējā darba diena', r['Pēdējā darba diena']], ['Iemesls', r['Beigu iemesls']]]);
   } else {
-    html += '<div class="kv-t">Atvaļinājums</div>' + kv([['Veids', r['Veids']], ['Periods', r['No'] + ' – ' + r['Līdz']], ['Ilgums', r['Kalendārās dienas'] + ' kalendārās d. · ' + r['Darba dienas'] + ' darba d.'], ['Aizvietotājs', r['Aizvietotājs']]]);
+    html += '<div class="kv-t">Atvaļinājums</div>' + kv([['Veids', r['Veids']], ['Periods', r['No'] + ' – ' + r['Līdz']], ['Ilgums', r['Kalendārās dienas'] + ' kalendārās d. · ' + r['Darba dienas'] + ' darba d.'], ['Aizvietotājs', r['Aizvietotājs']], ['Strādās atvaļinājuma laikā', r['Strādās atvaļinājuma laikā'] ? 'Jā' : 'Nē']]);
     html += '<div class="kv-t">Darbavieta</div>' + kv([['SIA', r['SIA']], ...objs.map(o => [o.name, o.amati.join(', ')])]);
   }
   const dlT = (v) => !v ? (r['Statuss'] === 'Apstiprināts' ? 'gaida (pāries pats)' : 'pēc apstiprināšanas') : /^ok/.test(v) ? '✓ ' + v.replace(/^ok\s*/, 'pārnests ') : v === 'gaida beigas' ? 'pārnests · izslēgs pēc pēdējās darba dienas' : v;
@@ -1999,7 +2000,7 @@ function openEv(id) {
   const t = e.type, r = S.recs[t].find(x => x['ID'] === id);
   if (r) return openRec(t, id);
   openSheet(`<h3>${esc(e.name)}</h3><p class="lead">${t === 'hire' ? 'Sāk darbu ' + lvDate(e.no) : esc(e.veids) + ' · ' + lvDate(e.no) + ' – ' + lvDate(e.lidz)}</p>
-    <dl class="kv"><dt>SIA</dt><dd>${esc(e.sia)}</dd><dt>Objekti</dt><dd>${esc(splitObj(e.objekts).join('\n'))}</dd>${e.aizv ? `<dt>Aizvietotājs</dt><dd>${esc(e.aizv)}</dd>` : ''}<dt>Statuss</dt><dd>${esc(e.status)}</dd><dt>Iesniedza</dt><dd>${esc(e.by)}</dd></dl>
+    <dl class="kv"><dt>SIA</dt><dd>${esc(e.sia)}</dd><dt>Objekti</dt><dd>${esc(splitObj(e.objekts).join('\n'))}</dd>${e.aizv ? `<dt>Aizvietotājs</dt><dd>${esc(e.aizv)}</dd>` : ''}${e.strada ? '<dt>Atvaļinājuma laikā</dt><dd>Strādās</dd>' : ''}<dt>Statuss</dt><dd>${esc(e.status)}</dd><dt>Iesniedza</dt><dd>${esc(e.by)}</dd></dl>
     <button type="button" class="btn btn-glass btn-block" data-close>Aizvērt</button>`, true);
 }
 $('calList').onclick = (e) => { const c = e.target.closest('[data-ev]'); if (c) openEv(c.dataset.ev); };
