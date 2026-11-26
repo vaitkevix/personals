@@ -35,30 +35,30 @@ html[data-sh] h1,html[data-sh] h2,html[data-sh] h3{letter-spacing:-.025em}
 html[data-sh] .topbar{background:var(--sh-bg)!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 html[data-sh] .brand-text h1{font-size:20px!important;font-weight:800!important;letter-spacing:-.03em!important;color:var(--sh-ink)!important}
 html[data-sh] .brand-text p{font-weight:700!important;color:var(--sh-ink-3)!important}
-html[data-sh] .logo{background:var(--acc)!important;color:#16201b!important;border:0!important;box-shadow:none!important;border-radius:14px!important;background-image:none!important}
+html[data-sh] .logo{background:var(--acc)!important;color:#16201b!important;border:0!important;box-shadow:none!important;border-radius:var(--r-md,14px)!important;background-image:none!important}
 html[data-sh][data-theme="dark"] .logo{color:var(--sh-ink)!important}
 html[data-sh] .icon-btn{background:var(--sh-surf)!important;border:0!important;box-shadow:var(--sh-soft)!important;border-radius:50%!important;color:var(--sh-ink)!important}
 
 /* Cilnes: balta kapsula, aktīvā — tumša */
-html[data-sh] .tabs{background:var(--sh-surf)!important;border:0!important;box-shadow:0 1px 2px rgba(16,32,26,.05),0 10px 30px -14px rgba(16,32,26,.28)!important;border-radius:999px!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-html[data-sh] .tab-ind{background:var(--sh-dark)!important;box-shadow:none!important;border-radius:999px!important}
+html[data-sh] .tabs{background:var(--sh-surf)!important;border:0!important;box-shadow:0 1px 2px rgba(16,32,26,.05),0 10px 30px -14px rgba(16,32,26,.28)!important;border-radius:var(--r-pill,999px)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html[data-sh] .tab-ind{background:var(--sh-dark)!important;box-shadow:none!important;border-radius:var(--r-pill,999px)!important}
 html[data-sh] .tab{color:var(--sh-ink-2)!important;font-weight:700!important}
 html[data-sh] .tab.active{color:var(--sh-on-dark)!important;font-weight:800!important}
 @media (max-width:640px){
-  html[data-sh] .tabs{left:10px!important;right:10px!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;max-width:560px!important;margin:0 auto!important;border-radius:28px!important;padding:6px!important}
-  html[data-sh] .tabs .tab-ind{top:6px!important;bottom:6px!important;border-radius:22px!important}
+  html[data-sh] .tabs{left:10px!important;right:10px!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;max-width:560px!important;margin:0 auto!important;border-radius:var(--r-xl,28px)!important;padding:6px!important}
+  html[data-sh] .tabs .tab-ind{top:6px!important;bottom:6px!important;border-radius:var(--r-xl,28px)!important}
 }
 
 /* Kartītes */
-html[data-sh] .card{background:var(--sh-surf)!important;border:0!important;box-shadow:var(--sh-soft)!important;border-radius:28px!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html[data-sh] .card{background:var(--sh-surf)!important;border:0!important;box-shadow:var(--sh-soft)!important;border-radius:var(--r-xl,28px)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 html[data-sh] .card .glare,html[data-sh] .glare{display:none!important}
-html[data-sh] .skel{border-radius:28px!important}
-@media (max-width:520px){html[data-sh] .card,html[data-sh] .skel{border-radius:24px!important}}
+html[data-sh] .skel{border-radius:var(--r-xl,28px)!important}
+@media (max-width:520px){html[data-sh] .card,html[data-sh] .skel{border-radius:var(--r-xl,28px)!important}}
 
 /* Sadaļu virsraksti un sveiciena josla */
 html[data-sh] .view-head h2{font-size:26px!important;font-weight:800!important;letter-spacing:-.035em!important;color:var(--sh-ink)!important}
 html[data-sh] .view-head p,html[data-sh] .lead,html[data-sh] .hint{color:var(--sh-ink-3)!important;font-weight:600!important}
-html[data-sh] .hero{background:var(--acc)!important;background-image:none!important;color:#16201b!important;border:0!important;box-shadow:none!important;border-radius:28px!important;padding:20px 22px!important}
+html[data-sh] .hero{background:var(--acc)!important;background-image:none!important;color:#16201b!important;border:0!important;box-shadow:none!important;border-radius:var(--r-xl,28px)!important;padding:20px 22px!important}
 html[data-sh][data-theme="dark"] .hero{color:var(--sh-ink)!important;background:var(--acc)!important}
 html[data-sh] .hero *{color:inherit}
 html[data-sh] .hero h2{font-size:26px!important;font-weight:800!important;letter-spacing:-.035em!important}
@@ -66,23 +66,23 @@ html[data-sh] .hero .hello{font-weight:700!important;opacity:.7!important;color:
 html[data-sh] .hero::before,html[data-sh] .hero::after{display:none!important}
 
 /* Pogas */
-html[data-sh] .btn{border-radius:999px!important;font-weight:800!important;box-shadow:none!important}
+html[data-sh] .btn{border-radius:var(--r-pill,999px)!important;font-weight:800!important;box-shadow:none!important}
 html[data-sh] .btn-primary,html[data-sh] .btn-p{background:var(--sh-dark)!important;background-image:none!important;color:var(--sh-on-dark)!important;border:0!important}
 html[data-sh] .btn-primary:hover,html[data-sh] .btn-p:hover{filter:brightness(1.15)}
 html[data-sh] .btn-ghost,html[data-sh] .btn-glass,html[data-sh] .btn-g{background:var(--sh-surf-2)!important;background-image:none!important;color:var(--sh-ink)!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-html[data-sh] .chip-link,html[data-sh] .sc,html[data-sh] .more-btn{border-radius:999px!important}
+html[data-sh] .chip-link,html[data-sh] .sc,html[data-sh] .more-btn{border-radius:var(--r-pill,999px)!important}
 
 /* Lauki */
-html[data-sh] .input,html[data-sh] .select,html[data-sh] .textarea{background-color:var(--sh-surf-2)!important;border:1.5px solid transparent!important;box-shadow:none!important;border-radius:16px!important}
+html[data-sh] .input,html[data-sh] .select,html[data-sh] .textarea{background-color:var(--sh-surf-2)!important;border:1.5px solid transparent!important;box-shadow:none!important;border-radius:var(--r-lg,20px)!important}
 html[data-sh] .input:focus,html[data-sh] .select:focus,html[data-sh] .textarea:focus{border-color:var(--sh-ink)!important;background-color:var(--sh-surf)!important}
 html[data-sh] .label{font-weight:800!important}
 
 /* Žetoni */
-html[data-sh] .badge,html[data-sh] .tag,html[data-sh] .chip{border-radius:999px!important}
+html[data-sh] .badge,html[data-sh] .tag,html[data-sh] .chip{border-radius:var(--r-pill,999px)!important}
 
 /* Uznirstošie logi */
-html[data-sh] .sheet,html[data-sh] .modal,html[data-sh] .menu{border-radius:28px!important;border:0!important;background:var(--sh-surf)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-html[data-sh] .toast{border-radius:22px!important}
+html[data-sh] .sheet,html[data-sh] .modal,html[data-sh] .menu{border-radius:var(--r-xl,28px)!important;border:0!important;background:var(--sh-surf)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html[data-sh] .toast{border-radius:var(--r-xl,28px)!important}
 
 /* Ieeja (PIN) */
 html[data-sh] .lock .ic,html[data-sh] .shx-gate .ic{background:var(--acc)!important;color:#16201b!important;border-radius:50%!important;box-shadow:none!important}
@@ -94,31 +94,31 @@ html[data-sh] .topbar::before{background:var(--sh-bg)!important;border:0!importa
 html[data-sh] .icon-btn{box-shadow:none!important}
 
 /* Segmenti (diena, filtri, režīmi): balta kapsula, aktīvais — tumšs */
-html[data-sh] .seg,html[data-sh] .filter-seg,html[data-sh] .lang-seg{background:var(--sh-surf)!important;border:0!important;box-shadow:none!important;border-radius:999px!important;padding:4px!important}
+html[data-sh] .seg,html[data-sh] .filter-seg,html[data-sh] .lang-seg{background:var(--sh-surf)!important;border:0!important;box-shadow:none!important;border-radius:var(--r-pill,999px)!important;padding:4px!important}
 html[data-sh] .card .seg,html[data-sh] .sheet .seg{background:var(--sh-surf-2)!important}
-html[data-sh] .seg button,html[data-sh] .seg label{border-radius:999px!important;font-weight:700!important;color:var(--sh-ink-2)}
-html[data-sh] .seg .on,html[data-sh] .seg button.on,html[data-sh] .filter-seg .on,html[data-sh] .lang-seg .on{background:var(--sh-dark)!important;color:var(--sh-on-dark)!important;box-shadow:none!important;border-radius:999px!important;font-weight:800!important}
+html[data-sh] .seg button,html[data-sh] .seg label{border-radius:var(--r-pill,999px)!important;font-weight:700!important;color:var(--sh-ink-2)}
+html[data-sh] .seg .on,html[data-sh] .seg button.on,html[data-sh] .filter-seg .on,html[data-sh] .lang-seg .on{background:var(--sh-dark)!important;color:var(--sh-on-dark)!important;box-shadow:none!important;border-radius:var(--r-pill,999px)!important;font-weight:800!important}
 html[data-sh] .seg .on .cnt{background:color-mix(in srgb,var(--sh-on-dark) 20%,transparent)!important;color:inherit!important}
 
 /* Raustītās līnijas → mierīgi pelēki laukumi */
 html[data-sh] .more-btn,html[data-sh] .ai-btn,html[data-sh] .drop-empty,html[data-sh] .bulky-line,html[data-sh] .bc-free{border-color:transparent!important;background:var(--sh-surf-2)!important;box-shadow:none!important}
 html[data-sh] .more-btn{color:var(--sh-ink)!important;font-weight:800!important}
-html[data-sh] .ai-btn,html[data-sh] .drop-empty{border-radius:20px!important}
+html[data-sh] .ai-btn,html[data-sh] .drop-empty{border-radius:var(--r-lg,20px)!important}
 html[data-sh] .drop-empty .ic,html[data-sh] .ai-spark{background:var(--acc)!important;color:#16201b!important}
 html[data-sh][data-theme="dark"] .drop-empty .ic,html[data-sh][data-theme="dark"] .ai-spark{color:var(--sh-ink)!important}
-html[data-sh] .btray{border-color:transparent!important;border-radius:20px!important;background:color-mix(in srgb,#e07a1f 10%,var(--sh-surf))!important}
+html[data-sh] .btray{border-color:transparent!important;border-radius:var(--r-lg,20px)!important;background:color-mix(in srgb,#e07a1f 10%,var(--sh-surf))!important}
 html[data-sh] .btray.over{border-color:#e07a1f!important;border-style:solid!important}
 html[data-sh] .bc{border-color:transparent!important}
 
 /* Izvēles flīzes un pogas: bez rāmja; izvēlētā — pasteļkrāsa ar tumšu kontūru */
-html[data-sh] button.kind,html[data-sh] .mat-pick button,html[data-sh] .bag-pick button,html[data-sh] .ptile,html[data-sh] .key{border-color:transparent!important;background:var(--sh-surf-2)!important;background-image:none!important;box-shadow:none!important;border-radius:20px!important}
+html[data-sh] button.kind,html[data-sh] .mat-pick button,html[data-sh] .bag-pick button,html[data-sh] .ptile,html[data-sh] .key{border-color:transparent!important;background:var(--sh-surf-2)!important;background-image:none!important;box-shadow:none!important;border-radius:var(--r-lg,20px)!important}
 html[data-sh] .key{border-radius:50%!important;color:var(--sh-ink)!important}
 html[data-sh] button.kind.on,html[data-sh] .mat-pick button.on,html[data-sh] .bag-pick button.on,html[data-sh] .ptile.on{background:var(--acc)!important;color:var(--sh-ink)!important;box-shadow:inset 0 0 0 2px var(--sh-ink)!important}
 html[data-sh] .sc{border-color:transparent!important;background:var(--sh-surf-2)!important;background-image:none!important;box-shadow:none!important;font-weight:700!important}
 html[data-sh] .sc.on{background:var(--sh-dark)!important;color:var(--sh-on-dark)!important}
-html[data-sh] .switch-row{border-color:transparent!important;background:var(--sh-surf-2)!important;border-radius:20px!important}
+html[data-sh] .switch-row{border-color:transparent!important;background:var(--sh-surf-2)!important;border-radius:var(--r-lg,20px)!important}
 html[data-sh] .chip,html[data-sh] .note{border-color:transparent!important}
-html[data-sh] .note{border-radius:16px!important}
+html[data-sh] .note{border-radius:var(--r-lg,20px)!important}
 
 /* Lauki: fokusā bez zaļā oreola */
 html[data-sh] .input:focus,html[data-sh] .select:focus,html[data-sh] .textarea:focus{box-shadow:none!important}
@@ -131,14 +131,14 @@ html[data-sh] .toast.err{background:#9f1f1f!important;color:#fff!important}
 html[data-sh] .tab .count{background:var(--acc)!important;color:#16201b!important}
 html[data-sh] .tab.active .count{background:color-mix(in srgb,var(--sh-on-dark) 22%,transparent)!important;color:inherit!important}
 html[data-sh] :focus-visible{outline-color:var(--sh-ink)!important}
-html[data-sh] .jrow,html[data-sh] .date-btn,html[data-sh] .mine-btn{border-color:transparent!important;background:var(--sh-surf-2)!important;border-radius:20px!important}
-html[data-sh] .mine-btn{border-radius:999px!important}
-html[data-sh] .total{border-color:transparent!important;background:var(--acc)!important;border-radius:20px!important}
+html[data-sh] .jrow,html[data-sh] .date-btn,html[data-sh] .mine-btn{border-color:transparent!important;background:var(--sh-surf-2)!important;border-radius:var(--r-lg,20px)!important}
+html[data-sh] .mine-btn{border-radius:var(--r-pill,999px)!important}
+html[data-sh] .total{border-color:transparent!important;background:var(--acc)!important;border-radius:var(--r-lg,20px)!important}
 html[data-sh] .done-block{border-top:0!important;background:none!important}
 html[data-sh] .jnum,html[data-sh] .jrow-h b i{background:var(--sh-dark)!important;background-image:none!important;color:var(--sh-on-dark)!important;box-shadow:none!important}
 html[data-sh][data-theme="dark"] .tab .count{color:var(--sh-ink)!important}
 html[data-sh][data-theme="dark"] .tab.active .count{color:inherit!important}
 
 /* platas pogas un aizvietošanas piekļuves rinda — nevis aplis (bija ovāls) */
-html[data-sh] .icon-btn.login-btn{border-radius:999px!important}
-html[data-sh=aizv] .key{border-radius:14px!important}
+html[data-sh] .icon-btn.login-btn{border-radius:var(--r-pill,999px)!important}
+html[data-sh=aizv] .key{border-radius:var(--r-md,14px)!important}
