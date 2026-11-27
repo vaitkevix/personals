@@ -19,7 +19,7 @@
 <meta name="theme-color" content="#0f6b5c">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
   // Tēma pirms lapas zīmēšanas — bez mirgošanas
   // Tēma kopīga ar SH portālu (localStorage sh_theme); bez atslēgas — gaišā
@@ -455,7 +455,8 @@
   .time-lbl{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--ink-2)}
   .time-lbl input{width:118px;min-height:40px;padding:6px 10px}
   .lang-seg{display:inline-flex;width:auto;margin:0 0 12px}
-  .lang-seg button{min-height:34px;padding:6px 14px;flex:0 0 auto}
+  :root[data-theme="dark"]{--del-red:#f97066}
+  .lang-seg button{min-height:40px;padding:6px 14px;flex:0 0 auto}
   a.btn{text-decoration:none}
   .offline{margin:0 0 12px;padding:10px 14px;border-radius:var(--radius-sm);background:var(--amber-soft);color:var(--amber);font-weight:700;font-size:13.5px}
   .prob{padding:12px 14px;margin-bottom:10px;border-radius:var(--radius-sm);background:var(--surface-2);border:1px solid var(--g-brd-2)}
@@ -501,7 +502,7 @@
   @media (min-width:760px){
     .topbar .tabs{position:relative;left:auto;right:auto;bottom:auto;max-width:none;margin:10px 0 2px;border-radius:var(--r-pill,999px);background:var(--surface-2);
       box-shadow:var(--g-well);border:1px solid var(--g-brd-2);-webkit-backdrop-filter:none;backdrop-filter:none}
-    .topbar .tab{flex-direction:row;justify-content:center;gap:8px;padding:11px 8px;font-size:14px}
+    .topbar .tab{flex-direction:row;justify-content:center;gap:8px;padding:11px 8px;font-size:14px;min-height:40px}
     .topbar .tab svg{width:17px;height:17px}
     .topbar .tab-ind{border-radius:var(--r-pill,999px)}
     .topbar .tab .count{position:static;margin-left:2px}
@@ -773,7 +774,7 @@
 </style>
 
 
-<!--SH-THEME--><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap"><link rel="stylesheet" href="sh-theme.css?v=4"><script>/*SH tēma: kopīga ar portālu (sh_theme), mainās uzreiz*/(function(d){d.setAttribute("data-sh","pers");function a(t){d.setAttribute("data-theme",t==="dark"?"dark":"light")}try{a(localStorage.getItem("sh_theme"))}catch(e){}addEventListener("storage",function(e){if(e.key==="sh_theme")a(e.newValue)});addEventListener("message",function(e){var m=e.data;if(e.origin===location.origin&&m&&m.sh==="theme")a(m.t)})})(document.documentElement)</script><!--/SH-THEME-->
+<!--SH-THEME--><link rel="stylesheet" href="sh-theme.css?v=4"><script>/*SH tēma: kopīga ar portālu (sh_theme), mainās uzreiz*/(function(d){d.setAttribute("data-sh","pers");function a(t){d.setAttribute("data-theme",t==="dark"?"dark":"light")}try{a(localStorage.getItem("sh_theme"))}catch(e){}addEventListener("storage",function(e){if(e.key==="sh_theme")a(e.newValue)});addEventListener("message",function(e){var m=e.data;if(e.origin===location.origin&&m&&m.sh==="theme")a(m.t)})})(document.documentElement)</script><!--/SH-THEME-->
 </head>
 <body>
 <div class="app no-tabs" id="app">
@@ -1893,7 +1894,7 @@ function openRec(t, id) {
     html += `<div class="kv-t">Mainīt statusu</div><div class="shortcuts" id="stPick">${STATUSES.map(s => `<button type="button" class="sc ${s === r['Statuss'] ? 'on' : ''}" data-st="${esc(s)}">${esc(s)}</button>`).join('')}</div>
       <div class="field"><textarea class="textarea" id="stCom" placeholder="Komentārs vadītājam (nav obligāts)">${esc(r['Admina komentārs'])}</textarea></div>
       <div class="btn-row"><button type="button" class="btn btn-glass" data-close>Aizvērt</button><button type="button" class="btn btn-primary" id="stSave">Saglabāt</button></div>
-      <button type="button" class="btn btn-glass btn-block" id="recDel" style="margin-top:10px;color:#b42318">Izdzēst pieteikumu</button>`;
+      <button type="button" class="btn btn-glass btn-block" id="recDel" style="margin-top:10px;color:var(--del-red,#b42318)">Izdzēst pieteikumu</button>`;
   } else html += '<button type="button" class="btn btn-glass btn-block" data-close>Aizvērt</button>';
   openSheet(html);
   $('toEmp').onclick = () => { closeSheet(); setTimeout(() => openEmp(recName(t, r)), 250); };
