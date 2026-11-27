@@ -1883,7 +1883,7 @@ function drawCard(d) {
   const ck = (p, title) => `<div class="kv-t">${title}</div><div class="eck">${K.check[p].map(x => `<label class="eck-r"><input type="checkbox" data-p="${p}" data-k="${x.id}" ${x.izdarits ? 'checked' : ''} ${ed ? '' : 'disabled'}><span><b>${esc(x.n)}</b>${x.izdarits && x.kas ? `<small>${esc(x.kas)} · ${esc(x.laiks.slice(0, 10).split('-').reverse().join('.'))}</small>` : ''}</span>${x.id === 'parbaude' ? `<input type="date" class="input eck-d" data-p="${p}" data-k="${x.id}" value="${esc(x.datums)}" ${ed ? '' : 'disabled'} aria-label="Pārbaudes laika beigu datums">${due(x.izdarits ? '' : x.datums)}` : ''}</label>`).join('')}</div>`;
   box.innerHTML = `<div class="kv-t">Dokumenti</div><div class="edoc">${K.docs.map(x => `<div class="edoc-r"><button type="button" class="edoc-o" data-open="${esc(x.id)}" ${ed ? '' : 'disabled'}><b>${esc(x.tips)}</b><small>${esc(x.nosaukums)}${x.derigs ? ' · derīgs līdz ' + esc(lvd(x.derigs)) : ''}</small></button>${due(x.derigs)}${ed ? `<button type="button" class="edoc-x" data-del="${esc(x.id)}" aria-label="Noņemt dokumentu">×</button>` : ''}</div>`).join('') || '<p class="hint">Nav dokumentu</p>'}</div>
     ${ed ? `<div class="edoc-add"><select class="select" id="edT" aria-label="Dokumenta veids">${K.docTipi.map(t => `<option>${esc(t)}</option>`).join('')}</select><input type="date" class="input" id="edD" aria-label="Derīgs līdz" title="Derīgs līdz (ja ir)"><label class="btn btn-glass" style="cursor:pointer">+ Fails<input type="file" id="edF" accept="application/pdf,image/*,.doc,.docx" hidden></label></div><p class="hint" style="margin:4px 0 0">Derīgs līdz — ja dokumentam ir termiņš (atgādinās Panelī 30 dienas iepriekš).</p>` : ''}
-    ${ck('pien', 'Pieņemot darbā')}${d.cur.beidz ? ck('atl', 'Atlaižot') : ''}
+    ${ck('pien', 'Pieņemot darbā')}${endHtml(d, ed)}${d.cur.beidz || d.beigas ? ck('atl', 'Atlaižot') : ''}
     ${d.gdpr ? `<div class="kv-t">Personas dati (GDPR)</div><div class="btn-row"><button type="button" class="btn btn-glass" id="gdEx">Eksportēt personas datus</button><button type="button" class="btn btn-glass" id="gdAn" style="color:#b42318">Anonimizēt</button></div><p class="hint">Anonimizējot personas kods, IBAN un adrese kļūst «***». Ieraksti paliek. Ierakstās žurnālā.</p>` : ''}`;
   const upd = (r) => { d.kart = r.kart; drawCard(d); };
   box.onchange = async (e) => {
@@ -1897,6 +1897,13 @@ function drawCard(d) {
   };
   box.onclick = async (e) => {
     const o = e.target.closest('[data-open]'), x = e.target.closest('[data-del]');
+    if (e.target.id === 'endGo' || e.target.id === 'endX') { const cancel = e.target.id === 'endX';
+      if (!cancel && (!$('endD').value || !$('endW').value.trim())) return toast('Norādiet pēdējo dienu un iemeslu', 'err');
+      if (cancel && !confirm('Atcelt darba attiecību izbeigšanu?')) return;
+      if (!cancel && !confirm('Izbeigt darba attiecības ar ' + d.vards + '? Pēc ' + lvd($('endD').value) + ' darbinieks Darba laikā kļūs neaktīvs.')) return;
+      e.target.disabled = true;
+      try { const r = await api('endJob', cancel ? { vards: d.vards, cancel: 1 } : { vards: d.vards, pedeja: $('endD').value, iemesls: $('endW').value.trim() }); toast(cancel ? 'Atcelts' : 'Saglabāts', 'ok'); closeSheet(); setTimeout(() => openEmp(d.vards), 250); }
+      catch (err) { e.target.disabled = false; toast(netMsg(err), 'err'); } return; }
     if (o) { const w = window.open('', '_blank'); try { const r = await api('docGet', { id: o.dataset.open }), b = await (await fetch(r.data)).blob(), u = URL.createObjectURL(b); if (w) w.location.href = u; else location.href = u; setTimeout(() => URL.revokeObjectURL(u), 120000); } catch (err) { if (w) w.close(); toast(netMsg(err), 'err'); } return; }
     if (x) { if (!confirm('Noņemt dokumentu? (fails paliek arhīvā)')) return; try { upd(await api('docSet', { id: x.dataset.del, del: 1 })); } catch (err) { toast(netMsg(err), 'err'); } return; }
     if (e.target.id === 'gdEx') { try { const r = await api('gdprExport', { vards: d.vards }); const a = document.createElement('a');
@@ -1905,6 +1912,15 @@ function drawCard(d) {
     if (e.target.id === 'gdAn') { const v = prompt('Anonimizēt «' + d.vards + '»? Personas kods, IBAN un adrese tiks aizstāti ar «***» visos ierakstos. To nevar atsaukt.\n\nApstiprinājumam ierakstiet darbinieka vārdu:'); if (v === null) return;
       try { const r = await api('gdprAnon', { vards: d.vards, apstiprinu: v }); toast('Anonimizēti ' + r.n + ' ieraksti', 'ok'); closeSheet(); setTimeout(() => openEmp(d.vards), 250); } catch (err) { toast(netMsg(err), 'err'); } }
   };
+}
+/* Darba attiecību izbeigšana: pēdējā diena + iemesls → pēc tās Darba laikā neaktīvs (Worker cron); kontrolsaraksts «Atlaižot» */
+function endHtml(d, ed) {
+  const B = d.beigas, kv = (rows) => '<dl class="kv">' + rows.filter(x => x[1] !== '' && x[1] != null).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('') + '</dl>';
+  if (B) return `<div class="kv-t">Darba attiecību beigas</div>${kv([['Pēdējā darba diena', lvd(B.pedeja)], ['Iemesls', B.iemesls], ['Ievadīja', B.kas], ['Darba laiks', B.dl_done ? 'izslēgts ' + lvd(B.dl_done.slice(0, 10)) : 'izslēgs pēc pēdējās dienas']])}
+    ${ed && !B.dl_done ? '<button type="button" class="btn btn-glass btn-block" id="endX">Atcelt izbeigšanu</button>' : ''}`;
+  if (!ed) return '';
+  return `<div class="kv-t">Izbeigt darba attiecības</div><div class="edoc-add"><input type="date" class="input" id="endD" aria-label="Pēdējā darba diena" title="Pēdējā darba diena"><input class="input" id="endW" placeholder="Iemesls (piem., pēc paša vēlēšanās)" aria-label="Iemesls"></div>
+    <button type="button" class="btn btn-glass btn-block" id="endGo" style="color:#b42318;margin-top:8px">Izbeigt</button><p class="hint" style="margin:4px 0 0">Pēc pēdējās dienas darbinieks Darba laikā kļūst neaktīvs (SMS atzīmes vairs nepieņem). Dati paliek.</p>`;
 }
 /* Excel algu aprēķinam (administrators) */
 const loadExcel = () => window.ExcelJS ? Promise.resolve() : new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'; s.onload = res; s.onerror = () => rej(new Error('Neizdevās ielādēt Excel bibliotēku')); document.head.appendChild(s); });
