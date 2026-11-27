@@ -339,6 +339,9 @@
   .sug{display:block;width:100%;margin-top:8px;padding:10px 12px;border:1px dashed var(--line-2);border-radius:var(--r-md,14px);background:var(--surface-2);color:var(--ink-2);font:inherit;font-size:13.5px;text-align:left;cursor:pointer}.sug b{color:var(--ink)}
   #tabs .tab .ts{display:none}@media (max-width:759px){#tabs .tab .tl{display:none}#tabs .tab .ts{display:inline}}
   .tl{display:flex;flex-direction:column;gap:6px}.tl-i{display:grid;grid-template-columns:1fr auto;gap:2px 10px;text-align:left;padding:10px 12px;border-radius:var(--r-md,14px);border:0;background:var(--surface-2);font:inherit;cursor:pointer}.tl-i b{font-size:13px}.tl-i span{grid-column:1;font-size:13.5px;font-weight:700}.tl-i small{grid-column:1;font-size:12px;color:var(--ink-3)}.tl-i .pill{grid-row:1/4;grid-column:2;align-self:center}
+  .eck{display:flex;flex-direction:column;gap:6px;margin:0 0 6px}.eck-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:var(--r-md,14px);background:var(--surface-2)}.eck-r>span{flex:1;min-width:150px;display:flex;flex-direction:column}.eck-r small{color:var(--ink-3);font-weight:600;font-size:12px}.eck-r input[type=checkbox]{width:22px;height:22px;flex:none}.eck-d{width:auto;max-width:170px;height:40px}
+  .edoc{display:flex;flex-direction:column;gap:6px}.edoc-r{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;border-radius:var(--r-md,14px);background:var(--surface-2)}.edoc-o{flex:1;min-width:0;text-align:left;border:0;background:transparent;font:inherit;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;padding:4px 0}.edoc-o small{color:var(--ink-3);font-weight:600;font-size:12px;overflow-wrap:anywhere}.edoc-x{border:0;background:transparent;color:#c02626;font-size:22px;width:40px;height:40px;cursor:pointer}
+  .edoc-add{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.edoc-add select{flex:1;min-width:160px}.edoc-add input[type=date]{width:auto;max-width:170px}
   .pay-tools{display:flex;gap:8px;margin-bottom:12px}.pay-tools .input{flex:1}.pay-sum{font-size:18px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}.chip.warnc{background:#fdf3d8;color:#7a5400}
   .stat .badge{width:36px;height:36px;border-radius:var(--r-md,14px);display:grid;place-items:center;color:#fff;margin-bottom:10px;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -1px 0 rgba(0,0,0,.15),0 8px 16px -8px rgba(0,0,0,.4)}
@@ -1789,10 +1792,44 @@ async function openEmp(name) {
     <div class="kv-t">Darba laiks (SMS)</div>${d.dl ? kv([['Tālrunis', d.dl.phone], ['Objekts', d.dl.objekts || '— nav piesaistīts'], ['Amats', d.dl.amats], ['Statuss', d.dl.aktivs ? 'aktīvs' : 'izslēgts'],
       ['Šomēnes', String(d.dl.sis.h).replace('.', ',') + ' h · ' + d.dl.sis.d + ' d.'], ['Iepriekšējā mēnesī', String(d.dl.iepr.h).replace('.', ',') + ' h · ' + d.dl.iepr.d + ' d.']]) : '<p class="hint">Nav Darba laikā — pāries pats pēc pieņemšanas apstiprināšanas</p>'}
     <div class="kv-t">Kontakti un dati</div>${kv([['Telefons', c.tel], ['E-pasts', c.epasts], ['Deklarētā adrese', c.adrese], ['Personas kods', c.pk], ['Banka', c.banka], ['IBAN', c.iban], ['Invaliditāte', c.inval], ['Pensionārs', c.pens]])}
+    <div id="empCard"></div>
     <div class="kv-t">Vēsture</div><div class="tl">${d.vesture.map(v => `<button type="button" class="tl-i" data-t="${v.t}" data-id="${esc(v.id)}"><b>${esc(TL[v.t])}</b><span>${esc(v.txt)}</span><small>${esc(v.d)} · ${esc(v.id)}</small>${stPill(v.st)}</button>`).join('') || '<p class="hint">Nav ierakstu</p>'}</div>
     <button type="button" class="btn btn-glass btn-block" data-close style="margin-top:12px">Aizvērt</button>`);
+  if (d.kart) drawCard(d);
   document.querySelector('.tl').onclick = (e) => { const b = e.target.closest('[data-id]'); if (!b) return; const t = b.dataset.t, id = b.dataset.id;
     if (!(S.recs[t] || []).some(x => x['ID'] === id)) return toast('Ieraksts nav pieejams', 'err'); closeSheet(); setTimeout(() => openRec(t, id), 250); };
+}
+/* Darbinieka kartīte: dokumenti ar derīgumu, kontrolsaraksts pieņemot/atlaižot, GDPR (administratoram) */
+const lvd = (x) => x ? x.split('-').reverse().join('.') : '';
+const daysTo = (x) => Math.round((Date.parse(x + 'T12:00:00') - Date.now()) / 864e5);
+function drawCard(d) {
+  const K = d.kart, ed = !!d.labot, box = $('empCard'); if (!box) return;
+  const due = (x) => { if (!x) return ''; const n = daysTo(x); return n < 0 ? ' <span class="chip warnc">beidzies</span>' : n <= 30 ? ` <span class="chip warnc">pēc ${n} d.</span>` : ''; };
+  const ck = (p, title) => `<div class="kv-t">${title}</div><div class="eck">${K.check[p].map(x => `<label class="eck-r"><input type="checkbox" data-p="${p}" data-k="${x.id}" ${x.izdarits ? 'checked' : ''} ${ed ? '' : 'disabled'}><span><b>${esc(x.n)}</b>${x.izdarits && x.kas ? `<small>${esc(x.kas)} · ${esc(x.laiks.slice(0, 10).split('-').reverse().join('.'))}</small>` : ''}</span>${x.id === 'parbaude' ? `<input type="date" class="input eck-d" data-p="${p}" data-k="${x.id}" value="${esc(x.datums)}" ${ed ? '' : 'disabled'} aria-label="Pārbaudes laika beigu datums">${due(x.izdarits ? '' : x.datums)}` : ''}</label>`).join('')}</div>`;
+  box.innerHTML = `<div class="kv-t">Dokumenti</div><div class="edoc">${K.docs.map(x => `<div class="edoc-r"><button type="button" class="edoc-o" data-open="${esc(x.id)}" ${ed ? '' : 'disabled'}><b>${esc(x.tips)}</b><small>${esc(x.nosaukums)}${x.derigs ? ' · derīgs līdz ' + esc(lvd(x.derigs)) : ''}</small></button>${due(x.derigs)}${ed ? `<button type="button" class="edoc-x" data-del="${esc(x.id)}" aria-label="Noņemt dokumentu">×</button>` : ''}</div>`).join('') || '<p class="hint">Nav dokumentu</p>'}</div>
+    ${ed ? `<div class="edoc-add"><select class="select" id="edT" aria-label="Dokumenta veids">${K.docTipi.map(t => `<option>${esc(t)}</option>`).join('')}</select><input type="date" class="input" id="edD" aria-label="Derīgs līdz" title="Derīgs līdz (ja ir)"><label class="btn btn-glass" style="cursor:pointer">+ Fails<input type="file" id="edF" accept="application/pdf,image/*,.doc,.docx" hidden></label></div><p class="hint" style="margin:4px 0 0">Derīgs līdz — ja dokumentam ir termiņš (atgādinās Panelī 30 dienas iepriekš).</p>` : ''}
+    ${ck('pien', 'Pieņemot darbā')}${d.cur.beidz ? ck('atl', 'Atlaižot') : ''}
+    ${d.gdpr ? `<div class="kv-t">Personas dati (GDPR)</div><div class="btn-row"><button type="button" class="btn btn-glass" id="gdEx">Eksportēt personas datus</button><button type="button" class="btn btn-glass" id="gdAn" style="color:#b42318">Anonimizēt</button></div><p class="hint">Anonimizējot personas kods, IBAN un adrese kļūst «***». Ieraksti paliek. Ierakstās žurnālā.</p>` : ''}`;
+  const upd = (r) => { d.kart = r.kart; drawCard(d); };
+  box.onchange = async (e) => {
+    const c = e.target.closest('[data-p]');
+    if (c) { const p = c.dataset.p, k = c.dataset.k, row = c.closest('.eck-r'), cb = row.querySelector('input[type=checkbox]'), dt = row.querySelector('.eck-d');
+      try { upd(await api('checkSet', { vards: d.vards, posms: p, punkts: k, izdarits: cb.checked, datums: dt ? dt.value : '' })); toast('Saglabāts', 'ok'); } catch (err) { toast(netMsg(err), 'err'); drawCard(d); } return; }
+    if (e.target.id === 'edF') { const f = e.target.files[0]; if (!f) return; if (f.size > 10e6) return toast('Fails par lielu (līdz 10 MB)', 'err'); toast('Augšupielādē…');
+      try { let data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
+        if (/^data:(;|application\/octet-stream)/.test(data) && /\.pdf$/i.test(f.name)) data = data.replace(/^data:[^;]*;/, 'data:application/pdf;');
+        upd(await api('docUpload', { vards: d.vards, tips: $('edT').value, derigs: $('edD').value, name: f.name, data })); toast('Dokuments pievienots', 'ok'); } catch (err) { toast(netMsg(err), 'err'); } }
+  };
+  box.onclick = async (e) => {
+    const o = e.target.closest('[data-open]'), x = e.target.closest('[data-del]');
+    if (o) { const w = window.open('', '_blank'); try { const r = await api('docGet', { id: o.dataset.open }), b = await (await fetch(r.data)).blob(), u = URL.createObjectURL(b); if (w) w.location.href = u; else location.href = u; setTimeout(() => URL.revokeObjectURL(u), 120000); } catch (err) { if (w) w.close(); toast(netMsg(err), 'err'); } return; }
+    if (x) { if (!confirm('Noņemt dokumentu? (fails paliek arhīvā)')) return; try { upd(await api('docSet', { id: x.dataset.del, del: 1 })); } catch (err) { toast(netMsg(err), 'err'); } return; }
+    if (e.target.id === 'gdEx') { try { const r = await api('gdprExport', { vards: d.vards }); const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(r.export, null, 2)], { type: 'application/json' })); a.download = 'personas-dati-' + d.vards.replace(/[^\wĀ-ž-]+/g, '_') + '.json'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        toast('Eksportēti ' + r.n + ' ieraksti', 'ok'); } catch (err) { toast(netMsg(err), 'err'); } return; }
+    if (e.target.id === 'gdAn') { const v = prompt('Anonimizēt «' + d.vards + '»? Personas kods, IBAN un adrese tiks aizstāti ar «***» visos ierakstos. To nevar atsaukt.\n\nApstiprinājumam ierakstiet darbinieka vārdu:'); if (v === null) return;
+      try { const r = await api('gdprAnon', { vards: d.vards, apstiprinu: v }); toast('Anonimizēti ' + r.n + ' ieraksti', 'ok'); closeSheet(); setTimeout(() => openEmp(d.vards), 250); } catch (err) { toast(netMsg(err), 'err'); } }
+  };
 }
 /* Excel algu aprēķinam (administrators) */
 const loadExcel = () => window.ExcelJS ? Promise.resolve() : new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'; s.onload = res; s.onerror = () => rej(new Error('Neizdevās ielādēt Excel bibliotēku')); document.head.appendChild(s); });
