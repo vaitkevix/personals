@@ -658,6 +658,13 @@
     .calg.week .ev{font-size:13px;height:auto;padding:5px 9px}
     .yearg{grid-template-columns:1fr 1fr;gap:8px}
   }
+  .pick{display:grid;grid-template-columns:1fr;gap:10px}@media (min-width:760px){.pick{grid-template-columns:1fr 1fr}}
+  .pick button{display:flex;align-items:center;gap:14px;width:100%;min-height:84px;padding:16px 18px;text-align:left;cursor:pointer;color:var(--ink);font:inherit;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg,20px);box-shadow:var(--g-shadow-sm)}
+  .pick button:hover{border-color:var(--brand)}.pick button:active{transform:scale(.985)}
+  .pick .pi{flex:none;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:var(--pc,var(--surface-2))}
+  .pick b{display:block;font-size:16.5px;font-weight:800;line-height:1.25}.pick small{display:block;margin-top:3px;font-size:13px;font-weight:600;color:var(--ink-3);line-height:1.35}
+  .pick .chev{margin-left:auto;flex:none;color:var(--ink-3)}
+  .back-new{display:inline-flex;align-items:center;gap:4px;margin:0 0 8px;padding:6px 12px 6px 8px;border:0;border-radius:999px;background:var(--surface-2);color:var(--ink-2);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
   .cnt-badge{min-width:20px;height:20px;padding:0 6px;border-radius:var(--r-pill,999px);background:var(--surface-2);font-size:11px;display:inline-grid;place-items:center;margin-left:2px}
   .seg .on .cnt-badge{background:var(--brand-soft);color:var(--brand)}
   /* ================================================================
@@ -836,6 +843,12 @@
         <h2 id="heroGreeting">Labdien!</h2>
         <div class="pending-line" id="heroPending"><i></i><span>Lādē…</span></div>
       </div>
+    </section>
+
+    <!-- JAUNS: izvēle, ko darīt -->
+    <section id="v-new" class="view">
+      <div class="view-head"><h2>Ko vēlaties izdarīt?</h2><p>Izvēlieties — atvērsies vajadzīgā forma.</p></div>
+      <div class="pick" id="newPick"></div>
     </section>
 
     <!-- PIETEIKUMI -->
@@ -1166,24 +1179,35 @@ function logout() {
 }
 
 /* ---------- Lietotne ---------- */
-const TAB_SHORT = { list: 'Visi', hire: 'Pieņemt', vac: 'Atvaļ.', chg: 'Grozīj.', pay: 'Algas', cal: 'Kalend.', abs: 'Promb.' };   // telefonā, ja ciļņu daudz
+const TAB_SHORT = { new: 'Jauns', list: 'Visi', hire: 'Pieņemt', vac: 'Atvaļ.', chg: 'Grozīj.', pay: 'Algas', cal: 'Kalend.', abs: 'Promb.' };   // telefonā, ja ciļņu daudz
 const ROLE_TABS = {
-  admin: [['list', 'Pieteikumi', IC.list], ['hire', 'Pieņemt', IC.hire], ['vac', 'Atvaļinājums', IC.vac], ['chg', 'Grozījumi', IC.chg], ['abs', 'Prombūtnes', IC.abs], ['pay', 'Algas', IC.pay], ['cal', 'Kalendārs', IC.cal]],
-  vaditajs: [['hire', 'Pieņemt', IC.hire], ['vac', 'Atvaļinājums', IC.vac], ['chg', 'Grozījumi', IC.chg], ['abs', 'Prombūtnes', IC.abs], ['pay', 'Piemaksas', IC.pay], ['cal', 'Kalendārs', IC.cal], ['list', 'Mani', IC.list]]
+  admin: [['list', 'Pieteikumi', IC.list], ['new', 'Jauns', IC.hire], ['pay', 'Algas', IC.pay], ['cal', 'Kalendārs', IC.cal]],
+  vaditajs: [['new', 'Jauns', IC.hire], ['list', 'Mani pieteikumi', IC.list], ['cal', 'Kalendārs', IC.cal]]
 };
+/* Cilne «Jauns»: visas formas vienā vietā — mazāk ciļņu (personālam un vadītājiem) */
+const NEW_ITEMS = [['hire', 'Pieņemt darbā', 'Jauns darbinieks — objekti, amats un alga', 'hire', '#d6e8e1'], ['vac', 'Atvaļinājums', 'Ikgadējais vai cits atvaļinājums ar aizvietotāju', 'vac', '#fdf0d5'],
+  ['abs', 'Prombūtne', 'Slimības lapa, bezalgas atvaļinājums, mācības', 'abs', '#e0e6ec'], ['chg', 'Grozījumi vai atbrīvošana', 'Alga, objekts, amats vai darba attiecību beigas', 'chg', '#e2ddf2'], ['pay', 'Piemaksa', 'Par labu darbu, papilddarbu, aizvietošanu', 'pay', '#fde4e1']];
+let NEW_SUB = [];   // skati, kas atveras no «Jauns» (cilnē iezīmē «Jauns»)
 function startApp() {
   $('login').classList.remove('active'); $('login').hidden = true; $('appViews').hidden = false;
   const role = S.user.role === 'admin' ? 'admin' : 'vaditajs';
   $('brandSub').textContent = S.user.name + ' · ' + (S.user.label || (role === 'admin' ? 'Administrators' : 'Pieteicējs'));
   $('listH').textContent = role === 'admin' ? 'Pieteikumi' : 'Mani pieteikumi';
   const tabs = ROLE_TABS[role].filter(t => !(S.user.viewer && t[0] === 'pay'));   // skatītājam algu nav
+  const items = NEW_ITEMS.filter(x => !(x[0] === 'pay' && (role === 'admin' || S.user.viewer)));   // adminam piemaksas — cilnē «Algas»
+  NEW_SUB = items.map(x => x[0]);
+  $('newPick').innerHTML = items.map(([id, t, d, ic, c]) => `<button type="button" data-go="${id}"><span class="pi" style="--pc:${c}">${IC[ic]}</span><span><b>${t}</b><small>${d}</small></span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></button>`).join('');
+  $('newPick').onclick = (e) => { const b = e.target.closest('[data-go]'); if (b) switchView(b.dataset.go); };
+  $$('.back-new').forEach(b => b.remove());
+  NEW_SUB.forEach(id => { const h = document.querySelector('#v-' + id + ' .view-head'); if (!h) return; const b = document.createElement('button'); b.type = 'button'; b.className = 'back-new'; b.innerHTML = '‹ Visas iespējas'; b.onclick = () => switchView('new'); h.prepend(b); });
   $('tabs').innerHTML = '<span class="tab-ind" id="tabInd"></span>' + tabs.map(([id, l, ic]) =>
     `<button class="tab" data-tab="${id}">${ic}<span class="tl">${l}</span><span class="ts">${TAB_SHORT[id] && tabs.length > 5 ? (id === 'list' && role !== 'admin' ? 'Mani' : TAB_SHORT[id]) : l}</span><span class="count" id="cnt-${id}"></span></button>`).join('');
   $('tabs').hidden = false; $('app').classList.remove('no-tabs');
   $('tabs').onclick = (e) => { const b = e.target.closest('.tab'); if (b) switchView(b.dataset.tab); };
   placeTabs();
   fillLists(); resetHire(); resetVac(); resetChg();
-  switchView(ls.get('personals_view_' + role) && tabs.some(t => t[0] === ls.get('personals_view_' + role)) ? ls.get('personals_view_' + role) : tabs[0][0]);
+  const lv = ls.get('personals_view_' + role);
+  switchView(lv && (tabs.some(t => t[0] === lv) || NEW_SUB.indexOf(lv) !== -1) ? lv : tabs[0][0]);
   loadRecs().then(openFromLink);
   setTimeout(() => maybeA2HS(), 2500);
   if (window.SHXR) SHXR.maybeTour();
@@ -1202,7 +1226,8 @@ function openFromLink() {
 function switchView(v) {
   S.view = v; ls.set('personals_view_' + S.user.role, v);
   $$('#appViews > .view').forEach(s => s.classList.toggle('active', s.id === 'v-' + v));
-  $$('#tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === v));
+  const tv = NEW_SUB.indexOf(v) !== -1 ? 'new' : v;
+  $$('#tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tv));
   moveInd();
   if (v === 'cal') loadCal();
   if (v === 'list') renderList();
@@ -2190,12 +2215,13 @@ function maybeA2HS(force) {
 <script>
 window.SHX = { app: 'pers', external: true,
   getUser: function () { return S.user ? { name: S.user.name, kind: S.user.role === 'admin' ? 'admin' : 'vaditajs' } : null; },
-  homeTab: function (u) { return u.kind === 'admin' ? 'list' : 'hire'; },
+  homeTab: function (u) { return u.kind === 'admin' ? 'list' : 'new'; },
   switchTab: function (t) { switchView(t); },
   tours: {
     vaditajs: [
       { title: 'Sveiki!', text: 'Īsa pamācība par SH | Personāls. Aizņems pusminūti.' },
-      { sel: '#tabs', title: 'Cilnes', text: 'Pieņemt, Atvaļinājums, Kalendārs un Mani pieteikumi.' },
+      { sel: '#tabs', title: 'Cilnes', text: '«Jauns» — pieņemt darbā, atvaļinājums, prombūtne, grozījumi. «Mani pieteikumi» — statuss. «Kalendārs» — kas un kad prom.' },
+      { sel: '#newPick', tab: 'new', title: 'Jauns', text: 'Izvēlieties, ko vēlaties izdarīt — atvērsies vajadzīgā forma. Atpakaļ — «‹ Visas iespējas».' },
       { sel: '#hVards', tab: 'hire', title: 'Pieņemt darbinieku', text: 'Ierakstiet darbinieka datus. Katram objektam atzīmējiet amatu un algu.' },
       { sel: '#vDarb', tab: 'vac', title: 'Atvaļinājums', text: 'Izvēlieties darbinieku — darbavieta aizpildīsies pati. Tad norādiet periodu.' },
       { sel: '#calView', tab: 'cal', title: 'Kalendārs', text: 'Kas un kad ir prom, kas sāk strādāt. Pārslēdziet nedēļu, mēnesi vai gadu.' },
